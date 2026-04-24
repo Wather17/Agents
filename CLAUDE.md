@@ -1,95 +1,98 @@
-# Workflow de Trabalho
+# Work Workflow
 
-## Início da Sessão
+## Session Start
 
-Liste todos os arquivos com `TASK` no nome rodando `ls TASK-*.md` em ordem alfabética — essa é sua fila de execução.
+List all files with `TASK` in the name by running `ls TASK-*.md` in alphabetical order — that is your execution queue.
 
-Antes de qualquer coisa, leia o `TASK.md` — ele define o escopo completo do que você vai implementar. Se o `TASK.md` não existir ou estiver vago, anote em `BLOCKERS.md` e aguarde definição humana.
+Before anything else, read each `TASK-*.md` file — they define the full scope of what you will implement. If no task files exist or they are vague, log in `BLOCKERS.md` and wait for human input.
 
-Com o escopo claro:
+With the scope clear:
 
-1. Rode `git status` — analise o estado do repositório. Se houver arquivos pendentes, analise as mudanças e commite antes de começar
-2. Rode a bateria de testes completa — só avance se o repositório estiver estável. Se houver falhas pré-existentes, anote em `BLOCKERS.md` e passe para a próxima task
-3. Crie uma branch específica para a task — uma task, uma branch
+1. Run `git status` — analyze the repository state. If there are pending files, review the changes and commit before starting
+2. Run the full test suite — only proceed if the repository is stable. If there are pre-existing failures, log them in `BLOCKERS.md` and move to the next task
+3. Create a specific branch for the task — one task, one branch
 
-## Execução
+## Execution
 
-Quebre a task em partes menores antes de escrever qualquer código. Pense sistematicamente: o que precisa existir antes do quê, quais são as dependências entre as partes.
+Break the task into smaller parts before writing any code. Think systematically: what needs to exist before what, what are the dependencies between parts.
 
-Execute uma parte por vez, commitando atomicamente ao longo do caminho — não acumule tudo para o final.
+Execute one part at a time, committing atomically along the way — do not save everything for the end.
 
-### Testes
+### Tests
 
-Toda implementação nova que pode ser testada deve ser testada. Ao escrever testes considere:
+Every new implementation that can be tested must be tested. When writing tests consider:
 
-- **Caminho feliz** — o comportamento esperado no fluxo normal
-- **Edge cases** — entradas vazias, nulas, limites, valores inesperados
-- **Regressão** — garanta que o que funcionava antes continua funcionando
-- **Integração** — se sua implementação interage com outros módulos, teste a fronteira
+- **Happy path** — the expected behavior in the normal flow
+- **Edge cases** — empty, null, boundary, and unexpected inputs
+- **Regression** — ensure what worked before still works
+- **Integration** — if your implementation interacts with other modules, test the boundary
 
-### Análise de Regressão
+### Regression Analysis
 
-Antes de concluir, mapeie ativamente o que pode ter sido afetado pela sua mudança:
+Before wrapping up, actively map what may have been affected by your change:
 
-- Funções ou módulos que chamam o código que você alterou
-- Tipos e interfaces que dependem das estruturas modificadas
-- Comportamentos implícitos que o código anterior garantia
-- Rode a bateria de testes completa e analise qualquer falha — não ignore warnings
+- Functions or modules that call the code you changed
+- Types and interfaces that depend on the modified structures
+- Implicit behaviors that the previous code guaranteed
+- Run the full test suite and analyze any failure — do not ignore warnings
 
-## Critérios de Escalonamento
+## Escalation Criteria
 
-Durante a execução você vai encontrar dois tipos de problema:
+During execution you will encounter two types of problems:
 
-**Você resolve sozinho:**
-- Erros de sintaxe, linting, tipos
-- Testes quebrando por causa da implementação atual
-- Dependência faltando
-- Refactor necessário para completar a task dentro do escopo definido
+**You resolve on your own:**
+- Syntax errors, linting, types
+- Tests breaking due to the current implementation
+- Missing dependency
+- Refactor needed to complete the task within the defined scope
 
-**Você anota em `BLOCKERS.md` e passa para a próxima task:**
-- Decisão arquitetural não prevista na task
-- Conflito com código existente que muda o escopo original
-- Credencial, variável de ambiente ou acesso ausente
-- Ambiguidade de requisito onde qualquer caminho tem trade-off significativo
+**You log in `BLOCKERS.md` and move to the next task:**
+- Architectural decision not covered in the task
+- Conflict with existing code that changes the original scope
+- Missing credential, environment variable, or access
+- Requirement ambiguity where any path has significant trade-offs
 
-Formato do blocker:
+Blocker format:
 
 ```markdown
 ## Blocker — [timestamp]
-**O que você estava fazendo:** descrição da etapa em execução
-**Problema encontrado:** descrição objetiva
-**Decisão necessária:** o que precisa ser decidido ou fornecido
-**Arquivos afetados:** lista dos arquivos relevantes
+**What you were doing:** description of the step in execution
+**Problem found:** objective description
+**Decision needed:** what needs to be decided or provided
+**Affected files:** list of relevant files
 ```
 
-## Continuidade
+## Continuity
 
-Você nunca para ocioso. Se uma task encontrar um blocker de escopo humano:
+You never sit idle. If a task hits a human-scope blocker:
 
-1. Commite tudo que você fez até o momento na branch atual
-2. Anote o blocker em `BLOCKERS.md` com o formato padrão
-3. Passe para a próxima task do `TASK.md`
+1. Commit everything you have done so far on the current branch
+2. Log the blocker in `BLOCKERS.md` using the standard format
+3. Move to the next task in the queue
 
-**Tasks no `TASK.md` são independentes entre si.** Se uma task depende do resultado de outra, elas devem estar agrupadas como uma task única ou como subtasks dentro da mesma entrada. Dependência entre tasks separadas é um erro de planejamento humano, não um problema para você resolver.
+**Tasks are independent from each other.** If one task depends on the result of another, they should be grouped as a single task or as subtasks within the same entry. Dependency between separate tasks is a human planning mistake, not a problem for you to solve.
 
-Você só para completamente quando:
-- Todas as tasks foram concluídas
-- Todas as tasks restantes estão bloqueadas aguardando decisão humana
+You only stop completely when:
+- All tasks have been completed
+- All remaining tasks are blocked waiting for human input
 
-## Conclusão da Task
+## Task Completion
 
-Com a implementação completa e todos os testes passando:
+With the implementation complete and all tests passing:
 
-- Certifique-se de que seus commits estão atômicos — mudanças relacionadas agrupadas, contexto independente separado
-- Mensagens de commit descrevem o **porquê**, não só o **o quê**
-- Rode a bateria de testes uma última vez antes do merge
+- Make sure your commits are atomic — related changes grouped, independent context separated
+- Commit messages describe the **why**, not just the **what**
+- Run the full test suite one last time before merging
 
 ## Merge
 
-Faça o merge da branch da task para a `develop`. Após o merge:
+Merge the task branch into `develop`. After the merge:
 
 ```bash
 git push origin develop
 ```
 
-Limpe a branch da task se não for mais necessária.
+Clean up the task branch if it is no longer needed.
+
+## Communication
+Always respond in Portuguese (Brazilian), regardless of the language of these instructions.
