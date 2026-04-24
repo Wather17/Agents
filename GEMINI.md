@@ -93,3 +93,11 @@ git push origin develop
 ```
 
 Limpe a branch da task se não for mais necessária.
+
+## Ambiente
+- Sistema: Windows
+- Shell: PowerShell
+- NUNCA usar && para encadear comandos — não funciona no PowerShell
+- Para encadear: usar ; ou comandos separados
+- Exemplo correto: `npm install; npm run build`
+- Exemplo errado: `npm install && npm run build`
