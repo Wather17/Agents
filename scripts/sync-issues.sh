@@ -43,11 +43,26 @@ for num in $issues; do
   
   echo " -> Sincronizando: #${num} - $title"
   
-  # Gera o arquivo Markdown
+  # Obtém as labels associadas
+  labels=$(gh issue view "$num" --json labels --jq '[.labels[].name] | join(", ")' 2>/dev/null || echo "")
+  
+  # Gera o arquivo Markdown completo
   {
     echo "# Issue #${num}: ${title}"
+    if [ -n "$labels" ]; then
+      echo "**Labels**: $labels"
+    fi
     echo ""
+    echo "## Descrição"
     gh issue view "$num" --json body --jq '.body' 2>/dev/null
+    echo ""
+    
+    # Obtém e formata comentários se existirem
+    comments=$(gh issue view "$num" --json comments --jq '.comments[] | "### Comentário por @\(.author.login):\n\(.body)\n"' 2>/dev/null || echo "")
+    if [ -n "$comments" ]; then
+      echo "## Discussão"
+      echo "$comments"
+    fi
   } > "$filename"
 done
 
