@@ -7,6 +7,8 @@
 
 ## Fluxo Cíclico de Desenvolvimento (GitHub)
 
+O agente deve atuar de forma contínua e autônoma. Logo após finalizar uma issue e limpar o ambiente local, deve selecionar imediatamente a próxima issue da pasta `issues/` e repetir o processo, até que todas as issues tenham sido resolvidas.
+
 Sempre que iniciar no workspace ou finalizar uma tarefa, siga estritamente o ciclo abaixo:
 
 ```mermaid
