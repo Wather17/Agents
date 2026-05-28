@@ -73,3 +73,10 @@ graph TD
      git branch -d issue/<numero>-<slug-da-issue>
      ```
    - Remova o arquivo markdown correspondente em `issues/<numero>-<slug-da-issue>.md`.
+
+## Agentes Especializados Disponíveis
+
+### 1. Issue Architect & Quality Guard (`agents/issue-architect.md`)
+- **Foco**: Planejamento de requisitos, refinamento de ideias brutas via perguntas provocativas/QA, busca de bugs no código e criação de GitHub Issues ricas e autossuficientes.
+- **Skill Associada**: `.agents/skills/refine-issues.md`.
+- **Como usar**: Invoque o subagente correspondente usando o prompt definido em `agents/issue-architect.md` ou execute a skill local para planejar novas features complexas com o usuário.
