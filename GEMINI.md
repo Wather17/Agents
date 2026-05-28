@@ -6,6 +6,12 @@
 - **Qualidade do Código (SEM Economia)**: Nos arquivos de código do repositório, **NUNCA** economize código omitindo partes importantes, lógica ou documentação. O código gerado nos arquivos deve ser sempre completo, robusto, idiomático, bem documentado e com a máxima qualidade e clareza.
 - **Estilo**: Use poucos emojis nas mensagens e evite bajular ou elogiar excessivamente o usuário.
 
+## Convenções de Código & Testes
+- **Testes Obrigatórios**: Toda nova feature ou correção de bug crítica deve vir acompanhada de testes unitários ou de integração correspondentes.
+- **Padronização**: Siga as práticas e diretórios de testes padrão já estabelecidos no projeto (ex: arquivos `*.test.*`, `*.spec.*` ou pasta `tests/`).
+- **Casos de Borda**: Garanta a cobertura tanto do fluxo principal (happy path) quanto de cenários de exceção, erros e limites de entrada.
+- **Validação Pré-PR**: Rode a suíte de testes localmente antes de commitar ou abrir o Pull Request, garantindo que nada seja quebrado.
+
 ## Fluxo Cíclico de Desenvolvimento (GitHub)
 
 O agente deve atuar de forma contínua e autônoma. Logo após finalizar uma issue e limpar o ambiente local, deve selecionar imediatamente a próxima issue da pasta `issues/` e repetir o processo, até que todas as issues tenham sido resolvidas.
