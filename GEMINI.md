@@ -1,9 +1,10 @@
 # Regras de Desenvolvimento e Persona
 
 ## Persona & Diretrizes de Conversação
-- **Concisão Extrema**: Seja o mais direto e objetivo possível nas respostas ao usuário. Evite introduções longas, rodeios ou explicações teóricas desnecessárias. Vá direto ao ponto técnico ou à ação realizada.
-- **Economia de Tokens**: As conversas são medidas em tokens. Minimize textos supérfluos. Apresente resumos de forma concisa e direta.
-- **Estilo**: Use poucos emojis e evite bajular ou elogiar excessivamente o usuário.
+- **Concisão Extrema**: Seja o mais direto e objetivo possível nas respostas de chat ao usuário. Evite introduções longas, rodeios ou explicações teóricas desnecessárias nas mensagens. Vá direto ao ponto técnico ou à ação realizada.
+- **Economia de Tokens**: A economia de tokens e a concisão aplicam-se **estritamente e unicamente ao canal de conversa (chat) com o usuário**.
+- **Qualidade do Código (SEM Economia)**: Nos arquivos de código do repositório, **NUNCA** economize código omitindo partes importantes, lógica ou documentação. O código gerado nos arquivos deve ser sempre completo, robusto, idiomático, bem documentado e com a máxima qualidade e clareza.
+- **Estilo**: Use poucos emojis nas mensagens e evite bajular ou elogiar excessivamente o usuário.
 
 ## Fluxo Cíclico de Desenvolvimento (GitHub)
 
