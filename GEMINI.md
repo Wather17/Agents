@@ -10,7 +10,7 @@
 - **Testes Obrigatórios**: Toda nova feature ou correção de bug crítica deve vir acompanhada de testes unitários ou de integração correspondentes.
 - **Padronização**: Siga as práticas e diretórios de testes padrão já estabelecidos no projeto (ex: arquivos `*.test.*`, `*.spec.*` ou pasta `tests/`).
 - **Casos de Borda**: Garanta a cobertura tanto do fluxo principal (happy path) quanto de cenários de exceção, erros e limites de entrada.
-- **Validação Pré-PR**: Rode a suíte de testes localmente antes de commitar ou abrir o Pull Request, garantindo que nada seja quebrado.
+- **Validação Pré-PR**: A validação das alterações e dos testes será realizada de forma automatizada pelo pipeline de CI (GitHub Actions) na abertura e atualização do Pull Request.
 
 ## Fluxo Cíclico de Desenvolvimento (GitHub)
 
