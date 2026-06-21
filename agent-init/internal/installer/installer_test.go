@@ -90,3 +90,32 @@ func TestInstallDoesNotDuplicateGitignoreEntries(t *testing.T) {
 		t.Errorf("expected GEMINI.md once in .gitignore, found %d", count)
 	}
 }
+
+func TestInstallCreatesOpenCodeFiles(t *testing.T) {
+	target := t.TempDir()
+
+	results, err := Install(Options{
+		TargetPath: target,
+		Agent:      templates.OpenCode,
+		Force:      false,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 installed files, got %d", len(results))
+	}
+
+	if _, err := os.Stat(filepath.Join(target, "AGENTS.md")); err != nil {
+		t.Errorf("AGENTS.md was not created: %v", err)
+	}
+
+	gitignore, err := os.ReadFile(filepath.Join(target, ".gitignore"))
+	if err != nil {
+		t.Fatalf(".gitignore was not created: %v", err)
+	}
+	if !strings.Contains(string(gitignore), "AGENTS.md") || !strings.Contains(string(gitignore), "issues/") {
+		t.Errorf(".gitignore missing expected entries: %s", gitignore)
+	}
+}
