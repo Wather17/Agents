@@ -15,6 +15,8 @@ type Agent string
 const (
 	// Gemini is the default agent template.
 	Gemini Agent = "gemini"
+	// OpenCode is the OpenCode agent template.
+	OpenCode Agent = "opencode"
 )
 
 // File represents a file to be installed for a given agent.
@@ -35,6 +37,11 @@ func FilesFor(agent Agent) ([]File, error) {
 			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
+	case OpenCode:
+		return []File{
+			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true},
+			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported agent: %q", agent)
 	}
@@ -53,6 +60,14 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"GEMINI.md",
+			"",
+			"# Synced GitHub issues",
+			"issues/",
+		}, nil
+	case OpenCode:
+		return []string{
+			"# AI agent configuration files",
+			"AGENTS.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",
