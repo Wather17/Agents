@@ -191,3 +191,94 @@ func TestInstallMultipleAgents(t *testing.T) {
 		t.Errorf(".gitignore should contain both GEMINI.md and AGENTS.md: %s", gitignore)
 	}
 }
+
+func TestUpgradeUpdatesExistingPrompts(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("install should succeed: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(target, "GEMINI.md"), []byte("modified"), 0o644); err != nil {
+		t.Fatalf("failed to modify GEMINI.md: %v", err)
+	}
+
+	installed, skipped, err := Upgrade(target)
+	if err != nil {
+		t.Fatalf("upgrade should succeed: %v", err)
+	}
+
+	if len(installed) != 1 {
+		t.Fatalf("expected 1 updated file, got %d", len(installed))
+	}
+	if installed[0].Path != filepath.Join(target, "GEMINI.md") {
+		t.Errorf("expected GEMINI.md to be updated, got %s", installed[0].Path)
+	}
+	if len(skipped) != 0 {
+		t.Fatalf("expected 0 skipped files, got %d", len(skipped))
+	}
+
+	content, err := os.ReadFile(filepath.Join(target, "GEMINI.md"))
+	if err != nil {
+		t.Fatalf("failed to read GEMINI.md: %v", err)
+	}
+	if strings.Contains(string(content), "modified") {
+		t.Errorf("GEMINI.md was not updated to template content")
+	}
+}
+
+func TestUpgradeDoesNotInstallNewAgents(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("install should succeed: %v", err)
+	}
+
+	installed, skipped, err := Upgrade(target)
+	if err != nil {
+		t.Fatalf("upgrade should succeed: %v", err)
+	}
+
+	if len(installed) != 0 {
+		t.Fatalf("expected 0 updated files, got %d", len(installed))
+	}
+	if len(skipped) != 1 {
+		t.Fatalf("expected 1 skipped file, got %d", len(skipped))
+	}
+
+	if _, err := os.Stat(filepath.Join(target, "AGENTS.md")); err == nil {
+		t.Error("AGENTS.md should not be created by upgrade")
+	}
+}
+
+func TestUpgradeDoesNotTouchSharedScripts(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("install should succeed: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(target, "scripts", "sync-issues.sh"), []byte("#!/bin/bash\necho custom"), 0o755); err != nil {
+		t.Fatalf("failed to modify sync-issues.sh: %v", err)
+	}
+
+	installed, skipped, err := Upgrade(target)
+	if err != nil {
+		t.Fatalf("upgrade should succeed: %v", err)
+	}
+
+	if len(installed) != 0 {
+		t.Fatalf("expected 0 updated files, got %d", len(installed))
+	}
+	if len(skipped) != 1 {
+		t.Fatalf("expected 1 skipped file, got %d", len(skipped))
+	}
+
+	content, err := os.ReadFile(filepath.Join(target, "scripts", "sync-issues.sh"))
+	if err != nil {
+		t.Fatalf("failed to read sync-issues.sh: %v", err)
+	}
+	if !strings.Contains(string(content), "custom") {
+		t.Error("sync-issues.sh should not be modified by upgrade")
+	}
+}
