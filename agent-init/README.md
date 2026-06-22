@@ -18,6 +18,12 @@ O binário `agent-init` será instalado no `$GOPATH/bin`. Certifique-se de que e
 ## Atualizando
 
 ```bash
+agent-init update
+```
+
+Ou, manualmente:
+
+```bash
 go install github.com/Wather17/Agents/agent-init@latest
 ```
 
@@ -66,6 +72,13 @@ Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` p
 | `--force`     | `false`   | Sobrescreve arquivos existentes                |
 | `--no-commit` | `false`   | Não cria o commit automaticamente              |
 
+## Comandos
+
+| Comando            | Descrição                              |
+|--------------------|----------------------------------------|
+| `agent-init`       | Instala o template padrão no repo atual |
+| `agent-init update`| Atualiza o CLI para a última versão    |
+
 ## Exemplos
 
 ```bash
@@ -83,6 +96,9 @@ agent-init --force
 
 # Instalar sem criar commit automaticamente
 agent-init --no-commit
+
+# Atualizar o CLI
+agent-init update
 ```
 
 ## Repositórios que não são git
