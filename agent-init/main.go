@@ -43,6 +43,7 @@ func selfUpdate() error {
 	cmd := exec.Command("go", "install", packagePath+"@latest")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), "GOPROXY=direct")
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("update failed: %w", err)
 	}
