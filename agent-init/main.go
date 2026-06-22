@@ -35,7 +35,7 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 
 	agent := templates.Agent(agentName)
 
-	installed, err := installer.Install(installer.Options{
+	installed, skipped, err := installer.Install(installer.Options{
 		TargetPath: absPath,
 		Agent:      agent,
 		Force:      force,
@@ -44,7 +44,9 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 		return err
 	}
 
-	fmt.Println("Installed files:")
+	if len(installed) > 0 {
+		fmt.Println("Installed files:")
+	}
 	var commitable []string
 	for _, r := range installed {
 		status := ""
@@ -54,6 +56,13 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 			commitable = append(commitable, r.Path)
 		}
 		fmt.Printf("  - %s%s\n", r.Path, status)
+	}
+
+	if len(skipped) > 0 {
+		fmt.Println("Skipped (already exists and identical):")
+		for _, r := range skipped {
+			fmt.Printf("  - %s\n", r.Path)
+		}
 	}
 
 	if skipCommit {

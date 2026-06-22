@@ -2,6 +2,7 @@
 package installer
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,37 +17,49 @@ type Options struct {
 	Force      bool
 }
 
-// Result describes an installed file.
+// Result describes a file handled during installation.
 type Result struct {
 	Path    string
 	Ignored bool
 }
 
 // Install writes the embedded template files to the target directory.
-func Install(opts Options) ([]Result, error) {
+// It returns the files that were installed, the files that were skipped
+// because they already exist with identical content, and any error.
+func Install(opts Options) (installed []Result, skipped []Result, err error) {
 	files, err := templates.FilesFor(opts.Agent)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	installed := make([]Result, 0, len(files))
+	installed = make([]Result, 0, len(files))
+	skipped = make([]Result, 0, len(files))
 
 	for _, file := range files {
 		content, err := templates.Read(file.SourcePath)
 		if err != nil {
-			return installed, fmt.Errorf("reading embedded file %q: %w", file.SourcePath, err)
+			return installed, skipped, fmt.Errorf("reading embedded file %q: %w", file.SourcePath, err)
 		}
 
 		target := filepath.Join(opts.TargetPath, file.TargetPath)
 
 		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
-			return installed, fmt.Errorf("creating directory for %q: %w", target, err)
+			return installed, skipped, fmt.Errorf("creating directory for %q: %w", target, err)
 		}
 
-		if _, err := os.Stat(target); err == nil && !opts.Force {
-			return installed, fmt.Errorf("file already exists: %s (use --force to overwrite)", target)
-		} else if err != nil && !os.IsNotExist(err) {
-			return installed, fmt.Errorf("checking file %q: %w", target, err)
+		exists, identical, err := compareFile(target, content)
+		if err != nil {
+			return installed, skipped, fmt.Errorf("checking file %q: %w", target, err)
+		}
+
+		if exists {
+			if identical {
+				skipped = append(skipped, Result{Path: target, Ignored: file.Ignored})
+				continue
+			}
+			if !opts.Force {
+				return installed, skipped, fmt.Errorf("file already exists with different content: %s (use --force to overwrite)", target)
+			}
 		}
 
 		mode := os.FileMode(0o644)
@@ -55,17 +68,31 @@ func Install(opts Options) ([]Result, error) {
 		}
 
 		if err := os.WriteFile(target, content, mode); err != nil {
-			return installed, fmt.Errorf("writing file %q: %w", target, err)
+			return installed, skipped, fmt.Errorf("writing file %q: %w", target, err)
 		}
 
 		installed = append(installed, Result{Path: target, Ignored: file.Ignored})
 	}
 
 	if err := ensureGitignore(opts.TargetPath, opts.Agent); err != nil {
-		return installed, fmt.Errorf("updating .gitignore: %w", err)
+		return installed, skipped, fmt.Errorf("updating .gitignore: %w", err)
 	}
 
-	return installed, nil
+	return installed, skipped, nil
+}
+
+// compareFile checks whether the file at path exists and whether its content
+// is identical to the provided content. It returns (false, false, nil) when the
+// file does not exist.
+func compareFile(path string, content []byte) (exists bool, identical bool, err error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, false, nil
+		}
+		return false, false, err
+	}
+	return true, bytes.Equal(data, content), nil
 }
 
 func ensureGitignore(targetPath string, agent templates.Agent) error {

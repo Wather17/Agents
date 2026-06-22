@@ -12,7 +12,7 @@ import (
 func TestInstallCreatesFiles(t *testing.T) {
 	target := t.TempDir()
 
-	results, err := Install(Options{
+	installed, skipped, err := Install(Options{
 		TargetPath: target,
 		Agent:      templates.Gemini,
 		Force:      false,
@@ -21,8 +21,11 @@ func TestInstallCreatesFiles(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 installed files, got %d", len(results))
+	if len(installed) != 2 {
+		t.Fatalf("expected 2 installed files, got %d", len(installed))
+	}
+	if len(skipped) != 0 {
+		t.Fatalf("expected 0 skipped files, got %d", len(skipped))
 	}
 
 	if _, err := os.Stat(filepath.Join(target, "GEMINI.md")); err != nil {
@@ -45,26 +48,53 @@ func TestInstallCreatesFiles(t *testing.T) {
 	}
 }
 
-func TestInstallFailsWhenFilesExistWithoutForce(t *testing.T) {
+func TestInstallSkipsIdenticalFiles(t *testing.T) {
 	target := t.TempDir()
 
-	if _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
 		t.Fatalf("first install should succeed: %v", err)
 	}
 
-	if _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err == nil {
-		t.Fatal("second install without force should fail")
+	installed, skipped, err := Install(Options{TargetPath: target, Agent: templates.Gemini})
+	if err != nil {
+		t.Fatalf("second install of identical files should succeed: %v", err)
+	}
+	if len(installed) != 0 {
+		t.Fatalf("expected 0 installed files, got %d", len(installed))
+	}
+	if len(skipped) != 2 {
+		t.Fatalf("expected 2 skipped files, got %d", len(skipped))
+	}
+}
+
+func TestInstallFailsWhenFilesDifferWithoutForce(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("first install should succeed: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(target, "GEMINI.md"), []byte("different content"), 0o644); err != nil {
+		t.Fatalf("failed to modify GEMINI.md: %v", err)
+	}
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err == nil {
+		t.Fatal("install should fail when file differs without force")
 	}
 }
 
 func TestInstallSucceedsWithForce(t *testing.T) {
 	target := t.TempDir()
 
-	if _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
 		t.Fatalf("first install should succeed: %v", err)
 	}
 
-	if _, err := Install(Options{TargetPath: target, Agent: templates.Gemini, Force: true}); err != nil {
+	if err := os.WriteFile(filepath.Join(target, "GEMINI.md"), []byte("different content"), 0o644); err != nil {
+		t.Fatalf("failed to modify GEMINI.md: %v", err)
+	}
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini, Force: true}); err != nil {
 		t.Fatalf("install with force should succeed: %v", err)
 	}
 }
@@ -76,7 +106,7 @@ func TestInstallDoesNotDuplicateGitignoreEntries(t *testing.T) {
 		t.Fatalf("failed to create .gitignore: %v", err)
 	}
 
-	if _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
 		t.Fatalf("install should succeed: %v", err)
 	}
 
@@ -94,7 +124,7 @@ func TestInstallDoesNotDuplicateGitignoreEntries(t *testing.T) {
 func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 	target := t.TempDir()
 
-	results, err := Install(Options{
+	installed, skipped, err := Install(Options{
 		TargetPath: target,
 		Agent:      templates.OpenCode,
 		Force:      false,
@@ -103,8 +133,11 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 installed files, got %d", len(results))
+	if len(installed) != 2 {
+		t.Fatalf("expected 2 installed files, got %d", len(installed))
+	}
+	if len(skipped) != 0 {
+		t.Fatalf("expected 0 skipped files, got %d", len(skipped))
 	}
 
 	if _, err := os.Stat(filepath.Join(target, "AGENTS.md")); err != nil {
@@ -117,5 +150,44 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 	}
 	if !strings.Contains(string(gitignore), "AGENTS.md") || !strings.Contains(string(gitignore), "issues/") {
 		t.Errorf(".gitignore missing expected entries: %s", gitignore)
+	}
+}
+
+func TestInstallMultipleAgents(t *testing.T) {
+	target := t.TempDir()
+
+	installed, skipped, err := Install(Options{TargetPath: target, Agent: templates.Gemini})
+	if err != nil {
+		t.Fatalf("gemini install should succeed: %v", err)
+	}
+	if len(installed) != 2 || len(skipped) != 0 {
+		t.Fatalf("unexpected gemini install result: installed=%d skipped=%d", len(installed), len(skipped))
+	}
+
+	installed, skipped, err = Install(Options{TargetPath: target, Agent: templates.OpenCode})
+	if err != nil {
+		t.Fatalf("opencode install after gemini should succeed: %v", err)
+	}
+
+	if len(installed) != 1 {
+		t.Fatalf("expected 1 installed file for opencode, got %d", len(installed))
+	}
+	if installed[0].Path != filepath.Join(target, "AGENTS.md") {
+		t.Errorf("expected AGENTS.md to be installed, got %s", installed[0].Path)
+	}
+
+	if len(skipped) != 1 {
+		t.Fatalf("expected 1 skipped file for opencode, got %d", len(skipped))
+	}
+	if skipped[0].Path != filepath.Join(target, "scripts", "sync-issues.sh") {
+		t.Errorf("expected scripts/sync-issues.sh to be skipped, got %s", skipped[0].Path)
+	}
+
+	gitignore, err := os.ReadFile(filepath.Join(target, ".gitignore"))
+	if err != nil {
+		t.Fatalf("failed to read .gitignore: %v", err)
+	}
+	if !strings.Contains(string(gitignore), "GEMINI.md") || !strings.Contains(string(gitignore), "AGENTS.md") {
+		t.Errorf(".gitignore should contain both GEMINI.md and AGENTS.md: %s", gitignore)
 	}
 }
