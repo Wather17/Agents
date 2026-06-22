@@ -81,6 +81,80 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 	return installed, skipped, nil
 }
 
+// Upgrade updates already-installed agent prompt files in the target directory.
+// It does not install new agents or overwrite shared files such as
+// scripts/sync-issues.sh. It returns the files that were updated and the files
+// that were skipped because they already match the latest template.
+func Upgrade(targetPath string) (installed []Result, skipped []Result, err error) {
+	installed = make([]Result, 0)
+	skipped = make([]Result, 0)
+
+	agents := []templates.Agent{templates.Gemini, templates.OpenCode}
+
+	for _, agent := range agents {
+		files, err := templates.FilesFor(agent)
+		if err != nil {
+			return installed, skipped, err
+		}
+
+		for _, file := range files {
+			// Only update prompt files, never shared scripts.
+			if !file.Ignored {
+				continue
+			}
+
+			target := filepath.Join(targetPath, file.TargetPath)
+			exists, err := fileExists(target)
+			if err != nil {
+				return installed, skipped, fmt.Errorf("checking file %q: %w", target, err)
+			}
+			if !exists {
+				continue
+			}
+
+			content, err := templates.Read(file.SourcePath)
+			if err != nil {
+				return installed, skipped, fmt.Errorf("reading embedded file %q: %w", file.SourcePath, err)
+			}
+
+			exists, identical, err := compareFile(target, content)
+			if err != nil {
+				return installed, skipped, fmt.Errorf("comparing file %q: %w", target, err)
+			}
+			if exists && identical {
+				skipped = append(skipped, Result{Path: target, Ignored: file.Ignored})
+				continue
+			}
+
+			mode := os.FileMode(0o644)
+			if file.Executable {
+				mode = 0o755
+			}
+			if err := os.WriteFile(target, content, mode); err != nil {
+				return installed, skipped, fmt.Errorf("writing file %q: %w", target, err)
+			}
+			installed = append(installed, Result{Path: target, Ignored: file.Ignored})
+		}
+
+		if err := ensureGitignore(targetPath, agent); err != nil {
+			return installed, skipped, fmt.Errorf("updating .gitignore: %w", err)
+		}
+	}
+
+	return installed, skipped, nil
+}
+
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 // compareFile checks whether the file at path exists and whether its content
 // is identical to the provided content. It returns (false, false, nil) when the
 // file does not exist.
