@@ -74,10 +74,26 @@ Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` p
 
 ## Comandos
 
-| Comando            | Descrição                              |
-|--------------------|----------------------------------------|
-| `agent-init`       | Instala o template padrão no repo atual |
-| `agent-init update`| Atualiza o CLI para a última versão    |
+| Comando             | Descrição                                    |
+|---------------------|-----------------------------------------------|
+| `agent-init`        | Instala o template padrão no repo atual       |
+| `agent-init update` | Atualiza o CLI para a última versão           |
+| `agent-init upgrade`| Atualiza os prompts já instalados no repo atual |
+
+### `agent-init upgrade`
+
+Use esse comando quando os templates de prompt (`GEMINI.md`, `AGENTS.md`) forem atualizados no repo `Agents` e você quiser propagar essas mudanças para seus projetos:
+
+```bash
+agent-init upgrade
+```
+
+O que ele faz:
+- Atualiza o CLI (`agent-init update`)
+- Atualiza apenas os prompts já existentes no repo (`GEMINI.md` e/ou `AGENTS.md`)
+- Não instala novos templates
+- Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
+- Atualiza o `.gitignore` e cria um commit se for um repo git
 
 ## Exemplos
 
@@ -99,6 +115,9 @@ agent-init --no-commit
 
 # Atualizar o CLI
 agent-init update
+
+# Atualizar os prompts instalados no repo atual
+agent-init upgrade
 ```
 
 ## Repositórios que não são git
