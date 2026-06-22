@@ -16,12 +16,21 @@ import (
 const packagePath = "github.com/Wather17/Agents/agent-init"
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "update" {
-		if err := selfUpdate(); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "update":
+			if err := selfUpdate(); err != nil {
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				os.Exit(1)
+			}
+			return
+		case "upgrade":
+			if err := runUpgradeCommand(); err != nil {
+				fmt.Fprintf(os.Stderr, "error: %v\n", err)
+				os.Exit(1)
+			}
+			return
 		}
-		return
 	}
 
 	var (
@@ -32,7 +41,7 @@ func main() {
 	)
 	flag.Parse()
 
-	if err := run(*agentFlag, *pathFlag, *forceFlag, *noCommit); err != nil {
+	if err := runInstall(*agentFlag, *pathFlag, *forceFlag, *noCommit); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
@@ -51,7 +60,36 @@ func selfUpdate() error {
 	return nil
 }
 
-func run(agentName, targetPath string, force, skipCommit bool) error {
+func runUpgradeCommand() error {
+	var pathFlag = flag.String("path", ".", "Target repository path")
+	var noCommit = flag.Bool("no-commit", false, "Skip creating a git commit")
+	flag.CommandLine.Parse(os.Args[2:])
+
+	absPath, err := filepath.Abs(*pathFlag)
+	if err != nil {
+		return fmt.Errorf("resolving target path: %w", err)
+	}
+
+	if err := selfUpdate(); err != nil {
+		return err
+	}
+
+	installed, skipped, err := installer.Upgrade(absPath)
+	if err != nil {
+		return err
+	}
+
+	printResults(installed, skipped)
+
+	if *noCommit {
+		fmt.Println("Skipping git commit (--no-commit).")
+		return nil
+	}
+
+	return commitIfNeeded(absPath, installed)
+}
+
+func runInstall(agentName, targetPath string, force, skipCommit bool) error {
 	absPath, err := filepath.Abs(targetPath)
 	if err != nil {
 		return fmt.Errorf("resolving target path: %w", err)
@@ -68,16 +106,24 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 		return err
 	}
 
+	printResults(installed, skipped)
+
+	if skipCommit {
+		fmt.Println("Skipping git commit (--no-commit).")
+		return nil
+	}
+
+	return commitIfNeeded(absPath, installed)
+}
+
+func printResults(installed, skipped []installer.Result) {
 	if len(installed) > 0 {
 		fmt.Println("Installed files:")
 	}
-	var commitable []string
 	for _, r := range installed {
 		status := ""
 		if r.Ignored {
 			status = " (ignored by git)"
-		} else {
-			commitable = append(commitable, r.Path)
 		}
 		fmt.Printf("  - %s%s\n", r.Path, status)
 	}
@@ -88,10 +134,14 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 			fmt.Printf("  - %s\n", r.Path)
 		}
 	}
+}
 
-	if skipCommit {
-		fmt.Println("Skipping git commit (--no-commit).")
-		return nil
+func commitIfNeeded(absPath string, installed []installer.Result) error {
+	var commitable []string
+	for _, r := range installed {
+		if !r.Ignored {
+			commitable = append(commitable, r.Path)
+		}
 	}
 
 	if !git.IsRepository(absPath) {
@@ -120,7 +170,10 @@ func run(agentName, targetPath string, force, skipCommit bool) error {
 		return nil
 	}
 
-	msg := fmt.Sprintf("chore(agent-init): add %s agent configuration and issue sync script", agent)
+	msg := "chore(agent-init): update agent configuration files"
+	if len(commitable) > 0 {
+		msg = fmt.Sprintf("chore(agent-init): update %s", filepath.Base(commitable[0]))
+	}
 	if err := git.Commit(absPath, relFiles, msg); err != nil {
 		return err
 	}
