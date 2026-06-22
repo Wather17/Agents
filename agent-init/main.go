@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/Wather17/Agents/agent-init/internal/git"
@@ -12,7 +13,17 @@ import (
 	"github.com/Wather17/Agents/agent-init/internal/templates"
 )
 
+const packagePath = "github.com/Wather17/Agents/agent-init"
+
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "update" {
+		if err := selfUpdate(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	var (
 		agentFlag = flag.String("agent", "gemini", "Agent template to install (e.g., gemini)")
 		forceFlag = flag.Bool("force", false, "Overwrite existing files")
@@ -25,6 +36,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func selfUpdate() error {
+	fmt.Printf("Updating %s to latest...\n", packagePath)
+	cmd := exec.Command("go", "install", packagePath+"@latest")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("update failed: %w", err)
+	}
+	fmt.Println("Update complete. Restart your terminal if needed.")
+	return nil
 }
 
 func run(agentName, targetPath string, force, skipCommit bool) error {
