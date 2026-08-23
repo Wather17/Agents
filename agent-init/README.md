@@ -4,8 +4,8 @@ CLI para instalar configuração de agentes de IA e o script de sincronização 
 
 ## Requisitos
 
-- [Go](https://go.dev/doc/install) instalado (1.23+)
-- Para usar o script `scripts/sync-issues.sh`, é necessário o [GitHub CLI (gh)](https://cli.github.com/) autenticado
+- [Go](https://go.dev/doc/install) instalado (1.23+) para a instalação inicial via `go install`
+- [GitHub CLI (gh)](https://cli.github.com/) instalado e autenticado para atualizar o CLI e usar o script `scripts/sync-issues.sh`
 
 ## Instalação
 
@@ -21,7 +21,9 @@ O binário `agent-init` será instalado no `$GOPATH/bin`. Certifique-se de que e
 agent-init update
 ```
 
-Ou, manualmente:
+O comando baixa o binário da última GitHub Release correspondente ao sistema operacional e à arquitetura atual, valida o `checksums.txt` e substitui o executável instalado. Em Linux/WSL, a substituição é atômica.
+
+Como alternativa manual ou bootstrap:
 
 ```bash
 go install github.com/Wather17/Agents/agent-init@latest
@@ -38,6 +40,8 @@ agent-init
 Por padrão, o template `gemini` é usado. O comando instala:
 
 - `GEMINI.md` — prompt de persona e workflow
+- `agents/issue-architect.md` — agente especializado (Issue Architect & Quality Guard)
+- `.agents/skills/refine-issues.md` — skill de refinamento de ideias e criação de issues
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
@@ -54,6 +58,8 @@ O commit gerado pelo CLI inclui:
 Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` para manter o repositório limpo:
 
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
+- `agents/issue-architect.md`
+- `.agents/skills/refine-issues.md`
 - `issues/`
 
 ### Templates disponíveis
@@ -79,6 +85,7 @@ Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` p
 | `agent-init`        | Instala o template padrão no repo atual       |
 | `agent-init update` | Atualiza o CLI para a última versão           |
 | `agent-init upgrade`| Atualiza os prompts já instalados no repo atual |
+| `agent-init version`| Exibe a versão e os metadados do build        |
 
 ### `agent-init upgrade`
 
@@ -89,11 +96,25 @@ agent-init upgrade
 ```
 
 O que ele faz:
-- Atualiza o CLI (`agent-init update`)
-- Atualiza apenas os prompts já existentes no repo (`GEMINI.md` e/ou `AGENTS.md`)
-- Não instala novos templates
+- Tenta atualizar o CLI pela última GitHub Release e reexecuta o comando usando o binário atualizado
+- Atualiza os prompts e arquivos auxiliares já existentes no repo
+- Instala os arquivos auxiliares ausentes (`agents/issue-architect.md` e `.agents/skills/refine-issues.md`) quando `GEMINI.md` ou `AGENTS.md` já existe
+- Não instala um novo template de agente (`GEMINI.md` ou `AGENTS.md`)
 - Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
 - Atualiza o `.gitignore` e cria um commit se for um repo git
+
+Se a atualização automática do CLI falhar, o comando exibe um aviso e continua usando os templates embutidos na versão em execução.
+
+## Releases
+
+As releases do `agent-init` usam Semantic Versioning e tags no formato `agent-init/vMAJOR.MINOR.PATCH`, por exemplo:
+
+```bash
+git tag -a agent-init/v0.1.0 -m "release: agent-init v0.1.0"
+git push origin agent-init/v0.1.0
+```
+
+O workflow em `.github/workflows/release.yml` compila os binários Linux AMD64, Linux ARM64 e Windows AMD64, publica uma GitHub Release e gera o `checksums.txt` usado pelo comando `update`.
 
 ## Exemplos
 
@@ -115,6 +136,9 @@ agent-init --no-commit
 
 # Atualizar o CLI
 agent-init update
+
+# Exibir a versão instalada
+agent-init version
 
 # Atualizar os prompts instalados no repo atual
 agent-init upgrade

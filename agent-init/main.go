@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/Wather17/Agents/agent-init/internal/git"
@@ -13,7 +12,10 @@ import (
 	"github.com/Wather17/Agents/agent-init/internal/templates"
 )
 
-const packagePath = "github.com/Wather17/Agents/agent-init"
+var (
+	updateCLI       = selfUpdate
+	relaunchUpgrade = relaunchUpgradeCommand
+)
 
 func main() {
 	if len(os.Args) > 1 {
@@ -29,6 +31,9 @@ func main() {
 				fmt.Fprintf(os.Stderr, "error: %v\n", err)
 				os.Exit(1)
 			}
+			return
+		case "version":
+			printVersion()
 			return
 		}
 	}
@@ -47,19 +52,6 @@ func main() {
 	}
 }
 
-func selfUpdate() error {
-	fmt.Printf("Updating %s to latest...\n", packagePath)
-	cmd := exec.Command("go", "install", packagePath+"@latest")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), "GOPROXY=direct")
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("update failed: %w", err)
-	}
-	fmt.Println("Update complete. Restart your terminal if needed.")
-	return nil
-}
-
 func runUpgradeCommand() error {
 	var pathFlag = flag.String("path", ".", "Target repository path")
 	var noCommit = flag.Bool("no-commit", false, "Skip creating a git commit")
@@ -70,8 +62,12 @@ func runUpgradeCommand() error {
 		return fmt.Errorf("resolving target path: %w", err)
 	}
 
-	if err := selfUpdate(); err != nil {
-		return err
+	if os.Getenv(skipSelfUpdateEnv) != "1" {
+		if err := updateCLI(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: %v; continuing with current embedded templates\n", err)
+		} else {
+			return relaunchUpgrade()
+		}
 	}
 
 	installed, skipped, err := installer.Upgrade(absPath)

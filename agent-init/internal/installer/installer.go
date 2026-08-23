@@ -81,64 +81,98 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 	return installed, skipped, nil
 }
 
-// Upgrade updates already-installed agent prompt files in the target directory.
-// It does not install new agents or overwrite shared files such as
-// scripts/sync-issues.sh. It returns the files that were updated and the files
-// that were skipped because they already match the latest template.
+// Upgrade updates already-installed agent prompt files and completes missing
+// auxiliary files in the target directory. It does not install a new agent
+// prompt or overwrite shared files such as scripts/sync-issues.sh. An agent is
+// considered installed when its primary prompt file exists. It returns the
+// files that were installed or updated and the files that were skipped because
+// they already match the latest template.
 func Upgrade(targetPath string) (installed []Result, skipped []Result, err error) {
 	installed = make([]Result, 0)
 	skipped = make([]Result, 0)
 
 	agents := []templates.Agent{templates.Gemini, templates.OpenCode}
 
+	seen := make(map[string]bool)
+	files := make([]templates.File, 0)
+
 	for _, agent := range agents {
-		files, err := templates.FilesFor(agent)
+		agentFiles, err := templates.FilesFor(agent)
 		if err != nil {
 			return installed, skipped, err
 		}
 
-		for _, file := range files {
-			// Only update prompt files, never shared scripts.
-			if !file.Ignored {
+		installedAgent := false
+		for _, file := range agentFiles {
+			if !file.Prompt {
 				continue
 			}
 
-			target := filepath.Join(targetPath, file.TargetPath)
-			exists, err := fileExists(target)
+			exists, err := fileExists(filepath.Join(targetPath, file.TargetPath))
 			if err != nil {
-				return installed, skipped, fmt.Errorf("checking file %q: %w", target, err)
+				return installed, skipped, fmt.Errorf("checking agent prompt %q: %w", file.TargetPath, err)
 			}
-			if !exists {
+			installedAgent = exists
+			break
+		}
+		if !installedAgent {
+			continue
+		}
+
+		for _, file := range agentFiles {
+			// Only manage ignored agent files, never shared scripts, and never
+			// process the same shared file twice across agents.
+			if !file.Ignored || seen[file.TargetPath] {
 				continue
 			}
-
-			content, err := templates.Read(file.SourcePath)
-			if err != nil {
-				return installed, skipped, fmt.Errorf("reading embedded file %q: %w", file.SourcePath, err)
-			}
-
-			exists, identical, err := compareFile(target, content)
-			if err != nil {
-				return installed, skipped, fmt.Errorf("comparing file %q: %w", target, err)
-			}
-			if exists && identical {
-				skipped = append(skipped, Result{Path: target, Ignored: file.Ignored})
-				continue
-			}
-
-			mode := os.FileMode(0o644)
-			if file.Executable {
-				mode = 0o755
-			}
-			if err := os.WriteFile(target, content, mode); err != nil {
-				return installed, skipped, fmt.Errorf("writing file %q: %w", target, err)
-			}
-			installed = append(installed, Result{Path: target, Ignored: file.Ignored})
+			seen[file.TargetPath] = true
+			files = append(files, file)
 		}
 
 		if err := ensureGitignore(targetPath, agent); err != nil {
 			return installed, skipped, fmt.Errorf("updating .gitignore: %w", err)
 		}
+	}
+
+	for _, file := range files {
+		target := filepath.Join(targetPath, file.TargetPath)
+		exists, err := fileExists(target)
+		if err != nil {
+			return installed, skipped, fmt.Errorf("checking file %q: %w", target, err)
+		}
+		if !exists {
+			if file.Prompt {
+				// The prompt existed during agent detection. Do not create it if
+				// it was removed while the upgrade was running.
+				continue
+			}
+		}
+
+		content, err := templates.Read(file.SourcePath)
+		if err != nil {
+			return installed, skipped, fmt.Errorf("reading embedded file %q: %w", file.SourcePath, err)
+		}
+
+		exists, identical, err := compareFile(target, content)
+		if err != nil {
+			return installed, skipped, fmt.Errorf("comparing file %q: %w", target, err)
+		}
+		if exists && identical {
+			skipped = append(skipped, Result{Path: target, Ignored: file.Ignored})
+			continue
+		}
+
+		mode := os.FileMode(0o644)
+		if file.Executable {
+			mode = 0o755
+		}
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+			return installed, skipped, fmt.Errorf("creating directory for %q: %w", target, err)
+		}
+		if err := os.WriteFile(target, content, mode); err != nil {
+			return installed, skipped, fmt.Errorf("writing file %q: %w", target, err)
+		}
+		installed = append(installed, Result{Path: target, Ignored: file.Ignored})
 	}
 
 	return installed, skipped, nil
