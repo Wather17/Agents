@@ -26,6 +26,7 @@ O binário será instalado em `$GOPATH/bin`. Certifique-se de que esse diretóri
 | `agent-init --agent opencode` | Instala o template do OpenCode (`AGENTS.md`) |
 | `agent-init update` | Atualiza o CLI para a última versão |
 | `agent-init upgrade` | Atualiza os prompts já instalados no repositório atual |
+| `agent-init version` | Exibe a versão e os metadados do build |
 
 Para mais detalhes, veja o [README completo do agent-init](agent-init/README.md).
 
@@ -46,6 +47,10 @@ Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente (`agents/issue-archit
 
 ```
 Agents/
+├── .github/                    # CI e releases do agent-init
+│   └── workflows/
+│       ├── ci.yml
+│       └── release.yml
 ├── agent-init/              # Código-fonte do CLI
 │   ├── README.md            # Documentação completa do agent-init
 │   └── ...
