@@ -50,3 +50,43 @@ func TestRunUpgradeContinuesWhenCLISelfUpdateFails(t *testing.T) {
 		}
 	}
 }
+
+func TestRunUpgradeRelaunchesAfterSuccessfulSelfUpdate(t *testing.T) {
+	target := t.TempDir()
+
+	originalUpdateCLI := updateCLI
+	originalRelaunchUpgrade := relaunchUpgrade
+	originalCommandLine := flag.CommandLine
+	originalArgs := os.Args
+	t.Cleanup(func() {
+		updateCLI = originalUpdateCLI
+		relaunchUpgrade = originalRelaunchUpgrade
+		flag.CommandLine = originalCommandLine
+		os.Args = originalArgs
+	})
+
+	updated := false
+	relaunched := false
+	updateCLI = func() error {
+		updated = true
+		return nil
+	}
+	relaunchUpgrade = func() error {
+		relaunched = true
+		return nil
+	}
+	flag.CommandLine = flag.NewFlagSet("agent-init", flag.ContinueOnError)
+	flag.CommandLine.SetOutput(io.Discard)
+	os.Args = []string{"agent-init", "upgrade", "--path", target, "--no-commit"}
+	t.Setenv(skipSelfUpdateEnv, "")
+
+	if err := runUpgradeCommand(); err != nil {
+		t.Fatalf("upgrade should relaunch after self-update: %v", err)
+	}
+	if !updated {
+		t.Error("upgrade should attempt to update the CLI")
+	}
+	if !relaunched {
+		t.Error("upgrade should relaunch the updated CLI")
+	}
+}
