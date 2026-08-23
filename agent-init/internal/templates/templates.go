@@ -27,6 +27,8 @@ type File struct {
 	// Ignored indicates whether the file should be added to .gitignore and
 	// excluded from the automatic commit.
 	Ignored bool
+	// Prompt identifies the primary prompt that signals an agent is installed.
+	Prompt bool
 }
 
 // FilesFor returns the list of files to install for the given agent.
@@ -34,12 +36,16 @@ func FilesFor(agent Agent) ([]File, error) {
 	switch agent {
 	case Gemini:
 		return []File{
-			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true},
+			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true, Prompt: true},
+			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	case OpenCode:
 		return []File{
-			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true},
+			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true, Prompt: true},
+			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	default:
@@ -60,6 +66,8 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"GEMINI.md",
+			"agents/issue-architect.md",
+			".agents/skills/refine-issues.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",
@@ -68,6 +76,8 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"AGENTS.md",
+			"agents/issue-architect.md",
+			".agents/skills/refine-issues.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",

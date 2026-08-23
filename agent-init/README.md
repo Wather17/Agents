@@ -38,6 +38,8 @@ agent-init
 Por padrão, o template `gemini` é usado. O comando instala:
 
 - `GEMINI.md` — prompt de persona e workflow
+- `agents/issue-architect.md` — agente especializado (Issue Architect & Quality Guard)
+- `.agents/skills/refine-issues.md` — skill de refinamento de ideias e criação de issues
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
@@ -54,6 +56,8 @@ O commit gerado pelo CLI inclui:
 Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` para manter o repositório limpo:
 
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
+- `agents/issue-architect.md`
+- `.agents/skills/refine-issues.md`
 - `issues/`
 
 ### Templates disponíveis
@@ -90,10 +94,13 @@ agent-init upgrade
 
 O que ele faz:
 - Atualiza o CLI (`agent-init update`)
-- Atualiza apenas os prompts já existentes no repo (`GEMINI.md` e/ou `AGENTS.md`)
-- Não instala novos templates
+- Atualiza os prompts e arquivos auxiliares já existentes no repo
+- Instala os arquivos auxiliares ausentes (`agents/issue-architect.md` e `.agents/skills/refine-issues.md`) quando `GEMINI.md` ou `AGENTS.md` já existe
+- Não instala um novo template de agente (`GEMINI.md` ou `AGENTS.md`)
 - Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
 - Atualiza o `.gitignore` e cria um commit se for um repo git
+
+Se a atualização automática do CLI falhar, o comando exibe um aviso e continua usando os templates embutidos na versão em execução.
 
 ## Exemplos
 

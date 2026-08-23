@@ -15,6 +15,8 @@ import (
 
 const packagePath = "github.com/Wather17/Agents/agent-init"
 
+var updateCLI = selfUpdate
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -70,8 +72,8 @@ func runUpgradeCommand() error {
 		return fmt.Errorf("resolving target path: %w", err)
 	}
 
-	if err := selfUpdate(); err != nil {
-		return err
+	if err := updateCLI(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v; continuing with current embedded templates\n", err)
 	}
 
 	installed, skipped, err := installer.Upgrade(absPath)

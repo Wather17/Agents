@@ -38,7 +38,7 @@ Para mais detalhes, veja o [README completo do agent-init](agent-init/README.md)
 | `gemini` | `GEMINI.md` | Gemini CLI |
 | `opencode` | `AGENTS.md` | OpenCode |
 
-Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado.
+Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente (`agents/issue-architect.md`) e a skill (`.agents/skills/refine-issues.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado.
 
 ---
 

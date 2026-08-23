@@ -8,16 +8,24 @@ func TestFilesForGemini(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(files) != 2 {
-		t.Fatalf("expected 2 files, got %d", len(files))
+	if len(files) != 4 {
+		t.Fatalf("expected 4 files, got %d", len(files))
 	}
 
-	if files[0].TargetPath != "GEMINI.md" || !files[0].Ignored {
+	if files[0].TargetPath != "GEMINI.md" || !files[0].Ignored || !files[0].Prompt {
 		t.Errorf("GEMINI.md should be ignored, got %+v", files[0])
 	}
 
-	if files[1].TargetPath != "scripts/sync-issues.sh" || files[1].Ignored {
-		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[1])
+	if files[1].TargetPath != "agents/issue-architect.md" || !files[1].Ignored || files[1].Prompt {
+		t.Errorf("issue-architect.md should be ignored, got %+v", files[1])
+	}
+
+	if files[2].TargetPath != ".agents/skills/refine-issues.md" || !files[2].Ignored || files[2].Prompt {
+		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
+	}
+
+	if files[3].TargetPath != "scripts/sync-issues.sh" || files[3].Ignored {
+		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[3])
 	}
 }
 
@@ -39,16 +47,24 @@ func TestFilesForOpenCode(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(files) != 2 {
-		t.Fatalf("expected 2 files, got %d", len(files))
+	if len(files) != 4 {
+		t.Fatalf("expected 4 files, got %d", len(files))
 	}
 
-	if files[0].TargetPath != "AGENTS.md" || !files[0].Ignored {
+	if files[0].TargetPath != "AGENTS.md" || !files[0].Ignored || !files[0].Prompt {
 		t.Errorf("AGENTS.md should be ignored, got %+v", files[0])
 	}
 
-	if files[1].TargetPath != "scripts/sync-issues.sh" || files[1].Ignored {
-		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[1])
+	if files[1].TargetPath != "agents/issue-architect.md" || !files[1].Ignored || files[1].Prompt {
+		t.Errorf("issue-architect.md should be ignored, got %+v", files[1])
+	}
+
+	if files[2].TargetPath != ".agents/skills/refine-issues.md" || !files[2].Ignored || files[2].Prompt {
+		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
+	}
+
+	if files[3].TargetPath != "scripts/sync-issues.sh" || files[3].Ignored {
+		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[3])
 	}
 
 	entries, err := IgnoredEntries(OpenCode)
@@ -65,6 +81,30 @@ func TestFilesForOpenCode(t *testing.T) {
 	}
 	if !found {
 		t.Errorf("expected AGENTS.md in ignored entries, got %v", entries)
+	}
+}
+
+func TestIgnoredEntriesIncludeSkillAndAgent(t *testing.T) {
+	agents := []Agent{Gemini, OpenCode}
+	for _, agent := range agents {
+		entries, err := IgnoredEntries(agent)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		expected := []string{"agents/issue-architect.md", ".agents/skills/refine-issues.md"}
+		for _, want := range expected {
+			found := false
+			for _, entry := range entries {
+				if entry == want {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("expected %q in ignored entries for %s, got %v", want, agent, entries)
+			}
+		}
 	}
 }
 
