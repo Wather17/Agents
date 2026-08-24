@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Wather17/Agents/agent-init/internal/templates"
 )
@@ -229,14 +230,19 @@ func ensureGitignore(targetPath string, agent templates.Agent) error {
 	}
 	defer f.Close()
 
+	lineEnding := "\n"
+	if strings.Contains(existing, "\r\n") {
+		lineEnding = "\r\n"
+	}
+
 	if existing != "" && !endsWithNewline(existing) {
-		if _, err := f.WriteString("\n"); err != nil {
+		if _, err := f.WriteString(lineEnding); err != nil {
 			return err
 		}
 	}
 
 	for _, entry := range missing {
-		if _, err := f.WriteString(entry + "\n"); err != nil {
+		if _, err := f.WriteString(entry + lineEnding); err != nil {
 			return err
 		}
 	}
@@ -258,29 +264,12 @@ func filterMissing(entries []string, existing string) []string {
 }
 
 func containsLine(text, line string) bool {
-	idx := 0
-	for {
-		i := indexOf(text[idx:], line)
-		if i == -1 {
-			return false
-		}
-		abs := idx + i
-		before := abs == 0 || text[abs-1] == '\n'
-		after := abs+len(line) == len(text) || text[abs+len(line)] == '\n'
-		if before && after {
+	for _, candidate := range strings.Split(text, "\n") {
+		if strings.TrimSuffix(candidate, "\r") == line {
 			return true
 		}
-		idx = abs + 1
 	}
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i+len(substr) <= len(s); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
+	return false
 }
 
 func endsWithNewline(s string) bool {

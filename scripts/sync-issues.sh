@@ -1,69 +1,94 @@
 #!/usr/bin/env bash
 
-# Garante que o script pare em caso de erros simples
-set -e
+set -Eeuo pipefail
 
-# Define o diretório de destino
-ISSUES_DIR="issues"
+ISSUES_DIR="${ISSUES_DIR:-issues}"
+tmp_dir=""
 
-# Cria a pasta de issues se não existir
-mkdir -p "$ISSUES_DIR"
+cleanup() {
+  if [[ -n "$tmp_dir" && -d "$tmp_dir" ]]; then
+    rm -rf -- "$tmp_dir"
+  fi
+}
+trap cleanup EXIT
 
-# Limpa a pasta local para refletir apenas as issues ativas do repositório remoto
-rm -f "$ISSUES_DIR"/*.md
-
-echo "Sincronizando issues abertas do GitHub..."
-
-# Verifica se o gh CLI está instalado
-if ! command -v gh &> /dev/null; then
-  echo "Erro: GitHub CLI (gh) não está instalado ou não está no PATH."
+if ! command -v gh >/dev/null 2>&1; then
+  printf 'Erro: GitHub CLI (gh) não está instalado ou não está no PATH.\n' >&2
   exit 1
 fi
 
-# Obtém a lista de números das issues abertas
-issues=$(gh issue list --state open --json number --jq '.[].number' 2>/dev/null || true)
+mkdir -p -- "$ISSUES_DIR"
 
-if [ -z "$issues" ]; then
-  echo "Nenhuma issue aberta encontrada ou erro de autenticação/conexão com o GitHub."
-  exit 0
+printf 'Sincronizando issues abertas do GitHub...\n'
+
+# O cache atual só é substituído depois que a consulta e todos os detalhes
+# das issues terminarem com sucesso.
+if ! issues=$(gh issue list --state open --limit 1000 --json number --jq '.[].number'); then
+  printf 'Erro: não foi possível consultar as issues abertas. Verifique a autenticação e a conexão.\n' >&2
+  exit 1
 fi
 
+tmp_dir=$(mktemp -d "${ISSUES_DIR}.tmp.XXXXXX")
+count=0
+
 for num in $issues; do
-  # Obtém o título da issue
-  title=$(gh issue view "$num" --json title --jq '.title' 2>/dev/null || echo "issue-$num")
-  
-  # Cria um slug simples e seguro para o nome do arquivo
-  slug=$(echo "$title" | tr '[:upper:]' '[:lower:]' \
-                    | sed 's/ /-/g' \
-                    | sed 's/[^a-z0-9-]//g' \
-                    | sed 's/-\+/-/g' \
-                    | cut -c1-40) # limita tamanho do slug
-  
-  filename="${ISSUES_DIR}/${num}-${slug}.md"
-  
-  echo " -> Sincronizando: #${num} - $title"
-  
-  # Obtém as labels associadas
-  labels=$(gh issue view "$num" --json labels --jq '[.labels[].name] | join(", ")' 2>/dev/null || echo "")
-  
-  # Gera o arquivo Markdown completo
+  if ! title=$(gh issue view "$num" --json title --jq '.title'); then
+    printf 'Erro: não foi possível obter o título da issue #%s.\n' "$num" >&2
+    exit 1
+  fi
+
+  if ! labels=$(gh issue view "$num" --json labels --jq '[.labels[].name] | join(", ")'); then
+    printf 'Erro: não foi possível obter as labels da issue #%s.\n' "$num" >&2
+    exit 1
+  fi
+
+  if ! body=$(gh issue view "$num" --json body --jq '.body'); then
+    printf 'Erro: não foi possível obter a descrição da issue #%s.\n' "$num" >&2
+    exit 1
+  fi
+
+  if ! comments=$(gh issue view "$num" --json comments --jq '.comments[] | "### Comentário por @\(.author.login):\n\(.body)\n"'); then
+    printf 'Erro: não foi possível obter a discussão da issue #%s.\n' "$num" >&2
+    exit 1
+  fi
+
+  slug=$(printf '%s' "$title" \
+    | LC_ALL=C tr '[:upper:]' '[:lower:]' \
+    | tr ' ' '-' \
+    | LC_ALL=C sed -e 's/[^a-z0-9-]//g' -e 's/-\+/-/g' -e 's/^-*//' -e 's/-*$//' \
+    | cut -c1-40)
+  slug="${slug:-issue}"
+  filename="${num}-${slug}.md"
+
+  printf ' -> Sincronizando: #%s - %s\n' "$num" "$title"
+
   {
-    echo "# Issue #${num}: ${title}"
-    if [ -n "$labels" ]; then
-      echo "**Labels**: $labels"
+    printf '# Issue #%s: %s\n' "$num" "$title"
+    if [[ -n "$labels" ]]; then
+      printf '**Labels**: %s\n' "$labels"
     fi
-    echo ""
-    echo "## Descrição"
-    gh issue view "$num" --json body --jq '.body' 2>/dev/null
-    echo ""
-    
-    # Obtém e formata comentários se existirem
-    comments=$(gh issue view "$num" --json comments --jq '.comments[] | "### Comentário por @\(.author.login):\n\(.body)\n"' 2>/dev/null || echo "")
-    if [ -n "$comments" ]; then
-      echo "## Discussão"
-      echo "$comments"
+    printf '\n## Descrição\n'
+    printf '%s\n' "$body"
+    printf '\n'
+
+    if [[ -n "$comments" ]]; then
+      printf '## Discussão\n'
+      printf '%s\n' "$comments"
     fi
-  } > "$filename"
+  } > "$tmp_dir/$filename"
+
+  count=$((count + 1))
 done
 
-echo "Sincronização concluída com sucesso! $(find "$ISSUES_DIR" -name "*.md" | wc -l) issues ativas salvas em ./${ISSUES_DIR}/"
+shopt -s nullglob
+old_files=("$ISSUES_DIR"/*.md)
+if ((${#old_files[@]} > 0)); then
+  rm -f -- "${old_files[@]}"
+fi
+
+new_files=("$tmp_dir"/*.md)
+if ((${#new_files[@]} > 0)); then
+  mv -- "${new_files[@]}" "$ISSUES_DIR/"
+fi
+
+printf 'Sincronização concluída com sucesso! %d issues ativas salvas em ./%s/\n' "$count" "$ISSUES_DIR"

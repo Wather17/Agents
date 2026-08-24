@@ -39,6 +39,7 @@ func FilesFor(agent Agent) ([]File, error) {
 			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true, Prompt: true},
 			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch.md", TargetPath: ".agents/skills/autonomous-batch.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	case OpenCode:
@@ -46,6 +47,7 @@ func FilesFor(agent Agent) ([]File, error) {
 			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true, Prompt: true},
 			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch.md", TargetPath: ".agents/skills/autonomous-batch.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	default:
@@ -68,6 +70,7 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 			"GEMINI.md",
 			"agents/issue-architect.md",
 			".agents/skills/refine-issues.md",
+			".agents/skills/autonomous-batch.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",
@@ -78,6 +81,7 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 			"AGENTS.md",
 			"agents/issue-architect.md",
 			".agents/skills/refine-issues.md",
+			".agents/skills/autonomous-batch.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",
