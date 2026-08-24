@@ -8,8 +8,8 @@ func TestFilesForGemini(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(files) != 4 {
-		t.Fatalf("expected 4 files, got %d", len(files))
+	if len(files) != 5 {
+		t.Fatalf("expected 5 files, got %d", len(files))
 	}
 
 	if files[0].TargetPath != "GEMINI.md" || !files[0].Ignored || !files[0].Prompt {
@@ -24,8 +24,12 @@ func TestFilesForGemini(t *testing.T) {
 		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
 	}
 
-	if files[3].TargetPath != "scripts/sync-issues.sh" || files[3].Ignored {
-		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[3])
+	if files[3].TargetPath != ".agents/skills/autonomous-batch.md" || !files[3].Ignored || files[3].Prompt {
+		t.Errorf("autonomous-batch.md should be ignored, got %+v", files[3])
+	}
+
+	if files[4].TargetPath != "scripts/sync-issues.sh" || files[4].Ignored {
+		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[4])
 	}
 }
 
@@ -47,8 +51,8 @@ func TestFilesForOpenCode(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(files) != 4 {
-		t.Fatalf("expected 4 files, got %d", len(files))
+	if len(files) != 5 {
+		t.Fatalf("expected 5 files, got %d", len(files))
 	}
 
 	if files[0].TargetPath != "AGENTS.md" || !files[0].Ignored || !files[0].Prompt {
@@ -63,8 +67,12 @@ func TestFilesForOpenCode(t *testing.T) {
 		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
 	}
 
-	if files[3].TargetPath != "scripts/sync-issues.sh" || files[3].Ignored {
-		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[3])
+	if files[3].TargetPath != ".agents/skills/autonomous-batch.md" || !files[3].Ignored || files[3].Prompt {
+		t.Errorf("autonomous-batch.md should be ignored, got %+v", files[3])
+	}
+
+	if files[4].TargetPath != "scripts/sync-issues.sh" || files[4].Ignored {
+		t.Errorf("sync-issues.sh should not be ignored, got %+v", files[4])
 	}
 
 	entries, err := IgnoredEntries(OpenCode)
@@ -92,7 +100,11 @@ func TestIgnoredEntriesIncludeSkillAndAgent(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		expected := []string{"agents/issue-architect.md", ".agents/skills/refine-issues.md"}
+		expected := []string{
+			"agents/issue-architect.md",
+			".agents/skills/refine-issues.md",
+			".agents/skills/autonomous-batch.md",
+		}
 		for _, want := range expected {
 			found := false
 			for _, entry := range entries {

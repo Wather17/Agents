@@ -42,6 +42,7 @@ Por padrão, o template `gemini` é usado. O comando instala:
 - `GEMINI.md` — prompt de persona e workflow
 - `agents/issue-architect.md` — agente especializado (Issue Architect & Quality Guard)
 - `.agents/skills/refine-issues.md` — skill de refinamento de ideias e criação de issues
+- `.agents/skills/autonomous-batch.md` — skill de execução autônoma em lotes
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
@@ -60,6 +61,7 @@ Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` p
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
 - `agents/issue-architect.md`
 - `.agents/skills/refine-issues.md`
+- `.agents/skills/autonomous-batch.md`
 - `issues/`
 
 ### Templates disponíveis
@@ -98,7 +100,7 @@ agent-init upgrade
 O que ele faz:
 - Tenta atualizar o CLI pela última GitHub Release e reexecuta o comando usando o binário atualizado
 - Atualiza os prompts e arquivos auxiliares já existentes no repo
-- Instala os arquivos auxiliares ausentes (`agents/issue-architect.md` e `.agents/skills/refine-issues.md`) quando `GEMINI.md` ou `AGENTS.md` já existe
+- Instala os arquivos auxiliares ausentes (`agents/issue-architect.md`, `.agents/skills/refine-issues.md` e `.agents/skills/autonomous-batch.md`) quando `GEMINI.md` ou `AGENTS.md` já existe
 - Não instala um novo template de agente (`GEMINI.md` ou `AGENTS.md`)
 - Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
 - Atualiza o `.gitignore` e cria um commit se for um repo git
@@ -115,6 +117,17 @@ git push origin agent-init/v0.1.0
 ```
 
 O workflow em `.github/workflows/release.yml` compila os binários Linux AMD64, Linux ARM64 e Windows AMD64, publica uma GitHub Release e gera o `checksums.txt` usado pelo comando `update`.
+
+## Workflow Autônomo
+
+O arquivo de prompt e a skill `autonomous-batch` orientam a IA a:
+
+- Ler e classificar todas as issues após uma sincronização bem-sucedida.
+- Priorizar issues prontas por dependências, prioridade, risco e escopo.
+- Executar uma issue por vez, mantendo branches, commits e PRs atômicos.
+- Fazer merge em `main` somente depois dos critérios de aceite, validação local e CI verde.
+- Bloquear issues incompletas sem interromper as demais do lote.
+- Continuar até não haver mais issues prontas.
 
 ## Exemplos
 
