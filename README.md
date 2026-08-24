@@ -39,7 +39,7 @@ Para mais detalhes, veja o [README completo do agent-init](agent-init/README.md)
 | `gemini` | `GEMINI.md` | Gemini CLI |
 | `opencode` | `AGENTS.md` | OpenCode |
 
-Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente (`agents/issue-architect.md`) e a skill (`.agents/skills/refine-issues.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado.
+Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente (`agents/issue-architect.md`) e as skills (`.agents/skills/refine-issues.md` e `.agents/skills/autonomous-batch.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado.
 
 ---
 
@@ -48,6 +48,8 @@ Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente (`agents/issue-archit
 ```
 Agents/
 ├── .github/                    # CI e releases do agent-init
+│   ├── ISSUE_TEMPLATE/         # Templates de issues autossuficientes
+│   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/
 │       ├── ci.yml
 │       └── release.yml
@@ -56,8 +58,9 @@ Agents/
 │   └── ...
 ├── agents/                  # Agentes especializados
 │   └── issue-architect.md
-├── .agents/skills/          # Skills de refinamento de issues
-│   └── refine-issues.md
+├── .agents/skills/          # Skills de refinamento e execução
+│   ├── refine-issues.md
+│   └── autonomous-batch.md
 ├── scripts/                 # Scripts de automação
 │   └── sync-issues.sh       # Sincroniza issues abertas do GitHub
 ├── GEMINI.md                # Prompt principal de persona e workflow
@@ -68,13 +71,13 @@ Agents/
 
 ## Workflow
 
-O workflow definido nos prompts segue um ciclo contínuo:
+O workflow definido nos prompts segue um ciclo contínuo de lotes com PRs atômicos:
 
 1. **Sincronizar** issues abertas com `scripts/sync-issues.sh`
 2. **Escolher** uma issue da pasta `issues/`
 3. **Criar** uma branch `issue/<numero>-<slug>`
 4. **Desenvolver** e commitar com Conventional Commits
-5. **Abrir** um Pull Request para `develop`
+5. **Abrir** um Pull Request para `main`
 6. **Fazer merge** e limpar o ambiente
 
 ---
