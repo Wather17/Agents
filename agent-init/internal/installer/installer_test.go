@@ -135,6 +135,47 @@ func TestInstallDoesNotDuplicateGitignoreEntries(t *testing.T) {
 	}
 }
 
+func TestContainsLineHandlesCRLF(t *testing.T) {
+	existing := "GEMINI.md\r\nissues/\r\n"
+
+	if !containsLine(existing, "GEMINI.md") {
+		t.Error("expected GEMINI.md to be found in CRLF text")
+	}
+	if !containsLine(existing, "issues/") {
+		t.Error("expected issues/ to be found in CRLF text")
+	}
+}
+
+func TestEnsureGitignorePreservesCRLF(t *testing.T) {
+	target := t.TempDir()
+	gitignorePath := filepath.Join(target, ".gitignore")
+	if err := os.WriteFile(gitignorePath, []byte("GEMINI.md\r\nissues/\r\n"), 0o644); err != nil {
+		t.Fatalf("failed to create CRLF .gitignore: %v", err)
+	}
+
+	if err := ensureGitignore(target, templates.Gemini); err != nil {
+		t.Fatalf("ensureGitignore should support CRLF files: %v", err)
+	}
+
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("failed to read .gitignore: %v", err)
+	}
+	text := string(content)
+	for _, entry := range []string{
+		"agents/issue-architect.md",
+		".agents/skills/refine-issues.md",
+		".agents/skills/autonomous-batch.md",
+	} {
+		if !strings.Contains(text, entry+"\r\n") {
+			t.Errorf("expected %q to use CRLF line ending: %q", entry, text)
+		}
+	}
+	if strings.Count(text, "GEMINI.md") != 1 {
+		t.Errorf("expected GEMINI.md once, got %d occurrences", strings.Count(text, "GEMINI.md"))
+	}
+}
+
 func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 	target := t.TempDir()
 
