@@ -1,3 +1,8 @@
+---
+name: refine-issues
+description: Refina ideias brutas, bugs e demandas técnicas em issues autossuficientes com critérios de aceite verificáveis. Use quando o usuário trouxer uma ideia vaga, ao auditar o código em busca de problemas ou ao preparar issues para execução autônoma.
+---
+
 # Skill: Refinamento de Issues Autossuficientes
 
 Esta skill transforma ideias brutas, bugs encontrados e demandas técnicas em issues prontas para execução autônoma. Ela também pode ser usada para auditar o repositório e separar problemas em tarefas atômicas.

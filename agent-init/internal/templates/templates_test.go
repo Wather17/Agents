@@ -16,16 +16,16 @@ func TestFilesForGemini(t *testing.T) {
 		t.Errorf("GEMINI.md should be ignored, got %+v", files[0])
 	}
 
-	if files[1].TargetPath != "agents/issue-architect.md" || !files[1].Ignored || files[1].Prompt {
-		t.Errorf("issue-architect.md should be ignored, got %+v", files[1])
+	if files[1].TargetPath != ".agents/skills/audit-issues/SKILL.md" || !files[1].Ignored || files[1].Prompt {
+		t.Errorf("audit-issues SKILL.md should be ignored, got %+v", files[1])
 	}
 
-	if files[2].TargetPath != ".agents/skills/refine-issues.md" || !files[2].Ignored || files[2].Prompt {
-		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
+	if files[2].TargetPath != ".agents/skills/refine-issues/SKILL.md" || !files[2].Ignored || files[2].Prompt {
+		t.Errorf("refine-issues SKILL.md should be ignored, got %+v", files[2])
 	}
 
-	if files[3].TargetPath != ".agents/skills/autonomous-batch.md" || !files[3].Ignored || files[3].Prompt {
-		t.Errorf("autonomous-batch.md should be ignored, got %+v", files[3])
+	if files[3].TargetPath != ".agents/skills/autonomous-batch/SKILL.md" || !files[3].Ignored || files[3].Prompt {
+		t.Errorf("autonomous-batch SKILL.md should be ignored, got %+v", files[3])
 	}
 
 	if files[4].TargetPath != "scripts/sync-issues.sh" || files[4].Ignored {
@@ -59,16 +59,16 @@ func TestFilesForOpenCode(t *testing.T) {
 		t.Errorf("AGENTS.md should be ignored, got %+v", files[0])
 	}
 
-	if files[1].TargetPath != "agents/issue-architect.md" || !files[1].Ignored || files[1].Prompt {
-		t.Errorf("issue-architect.md should be ignored, got %+v", files[1])
+	if files[1].TargetPath != ".opencode/skill/audit-issues/SKILL.md" || !files[1].Ignored || files[1].Prompt {
+		t.Errorf("audit-issues SKILL.md should be ignored, got %+v", files[1])
 	}
 
-	if files[2].TargetPath != ".agents/skills/refine-issues.md" || !files[2].Ignored || files[2].Prompt {
-		t.Errorf("refine-issues.md should be ignored, got %+v", files[2])
+	if files[2].TargetPath != ".opencode/skill/refine-issues/SKILL.md" || !files[2].Ignored || files[2].Prompt {
+		t.Errorf("refine-issues SKILL.md should be ignored, got %+v", files[2])
 	}
 
-	if files[3].TargetPath != ".agents/skills/autonomous-batch.md" || !files[3].Ignored || files[3].Prompt {
-		t.Errorf("autonomous-batch.md should be ignored, got %+v", files[3])
+	if files[3].TargetPath != ".opencode/skill/autonomous-batch/SKILL.md" || !files[3].Ignored || files[3].Prompt {
+		t.Errorf("autonomous-batch SKILL.md should be ignored, got %+v", files[3])
 	}
 
 	if files[4].TargetPath != "scripts/sync-issues.sh" || files[4].Ignored {
@@ -93,18 +93,29 @@ func TestFilesForOpenCode(t *testing.T) {
 }
 
 func TestIgnoredEntriesIncludeSkillAndAgent(t *testing.T) {
-	agents := []Agent{Gemini, OpenCode}
-	for _, agent := range agents {
+	expectedByAgent := map[Agent][]string{
+		Gemini: {
+			"GEMINI.md",
+			".agents/skills/audit-issues/SKILL.md",
+			".agents/skills/refine-issues/SKILL.md",
+			".agents/skills/autonomous-batch/SKILL.md",
+			"issues/",
+		},
+		OpenCode: {
+			"AGENTS.md",
+			".opencode/skill/audit-issues/SKILL.md",
+			".opencode/skill/refine-issues/SKILL.md",
+			".opencode/skill/autonomous-batch/SKILL.md",
+			"issues/",
+		},
+	}
+
+	for agent, expected := range expectedByAgent {
 		entries, err := IgnoredEntries(agent)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		expected := []string{
-			"agents/issue-architect.md",
-			".agents/skills/refine-issues.md",
-			".agents/skills/autonomous-batch.md",
-		}
 		for _, want := range expected {
 			found := false
 			for _, entry := range entries {

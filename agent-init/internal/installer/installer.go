@@ -92,6 +92,10 @@ func Upgrade(targetPath string) (installed []Result, skipped []Result, err error
 	installed = make([]Result, 0)
 	skipped = make([]Result, 0)
 
+	if err := removeLegacySkills(targetPath); err != nil {
+		return installed, skipped, err
+	}
+
 	agents := []templates.Agent{templates.Gemini, templates.OpenCode}
 
 	seen := make(map[string]bool)
@@ -188,6 +192,44 @@ func fileExists(path string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// legacyTargets are paths written by agent-init v0.2.0 and earlier. Skills
+// now use the <name>/SKILL.md layout, the audit skill replaced the standalone
+// agent file, and the opencode template installs under .opencode/skill/.
+var legacyTargets = []string{
+	".agents/skills/refine-issues.md",
+	".agents/skills/autonomous-batch.md",
+	"agents/issue-architect.md",
+	".opencode/agent/issue-architect.md",
+}
+
+func removeLegacySkills(targetPath string) error {
+	legacyParents := make(map[string]bool)
+
+	for _, relativePath := range legacyTargets {
+		legacyParents[filepath.Dir(filepath.Join(targetPath, relativePath))] = true
+
+		target := filepath.Join(targetPath, relativePath)
+		exists, err := fileExists(target)
+		if err != nil {
+			return fmt.Errorf("checking legacy skill %q: %w", target, err)
+		}
+		if !exists {
+			continue
+		}
+		if err := os.Remove(target); err != nil {
+			return fmt.Errorf("removing legacy skill %q: %w", target, err)
+		}
+		fmt.Printf("Removed legacy skill file: %s\n", target)
+	}
+
+	for parent := range legacyParents {
+		if err := os.Remove(parent); err == nil {
+			fmt.Printf("Removed empty legacy directory: %s\n", parent)
+		}
+	}
+	return nil
 }
 
 // compareFile checks whether the file at path exists and whether its content
