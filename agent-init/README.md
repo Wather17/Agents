@@ -40,15 +40,14 @@ agent-init
 Por padrão, o template `gemini` é usado. O comando instala:
 
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`) — prompt de persona e workflow
-- Agente `issue-architect` — requisitos, QA e criação de issues
-  - gemini: `agents/issue-architect.md`
-  - opencode: `.opencode/agent/issue-architect.md`
 - Skills com frontmatter no formato `<nome>/SKILL.md`
-  - gemini: `.agents/skills/refine-issues/SKILL.md` e `.agents/skills/autonomous-batch/SKILL.md`
-  - opencode: `.opencode/skill/refine-issues/SKILL.md` e `.opencode/skill/autonomous-batch/SKILL.md` (descoberta nativa pelo opencode)
+  - gemini: `.agents/skills/audit-issues/SKILL.md`, `.agents/skills/refine-issues/SKILL.md` e `.agents/skills/autonomous-batch/SKILL.md`
+  - opencode: `.opencode/skill/<nome>/SKILL.md` para as mesmas três skills (descoberta nativa pelo opencode)
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
+
+As três skills cobrem o ciclo completo: `refine-issues` (entrevista interativa), `audit-issues` (auditoria autônoma de QA) e `autonomous-batch` (execução da fila).
 
 ### O que é commitado
 
@@ -62,11 +61,10 @@ O commit gerado pelo CLI inclui:
 Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` para manter o repositório limpo:
 
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
-- Arquivo do agente (`agents/issue-architect.md` ou `.opencode/agent/issue-architect.md`)
 - Skills (`<skills>/<nome>/SKILL.md` conforme o template)
 - `issues/`
 
-O `upgrade` remove automaticamente os arquivos legados `.agents/skills/refine-issues.md` e `.agents/skills/autonomous-batch.md` de versões anteriores.
+O `upgrade` remove automaticamente arquivos legados de versões anteriores, incluindo os flats `.agents/skills/*.md`, o agente `agents/issue-architect.md` e `.opencode/agent/issue-architect.md`.
 
 ### Templates disponíveis
 

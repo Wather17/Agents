@@ -42,7 +42,7 @@ func TestRunUpgradeContinuesWhenCLISelfUpdateFails(t *testing.T) {
 	}
 
 	for _, path := range []string{
-		filepath.Join(target, "agents", "issue-architect.md"),
+		filepath.Join(target, ".agents", "skills", "audit-issues", "SKILL.md"),
 		filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md"),
 		filepath.Join(target, ".agents", "skills", "autonomous-batch", "SKILL.md"),
 	} {

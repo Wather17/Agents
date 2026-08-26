@@ -39,7 +39,7 @@ Para mais detalhes, veja o [README completo do agent-init](agent-init/README.md)
 | `gemini` | `GEMINI.md` | Gemini CLI |
 | `opencode` | `AGENTS.md` | OpenCode |
 
-Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`), o agente e as skills (formato `<nome>/SKILL.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado. O template `opencode` instala skills e agente em `.opencode/`, onde são descobertos nativamente pelo opencode.
+Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`) e as skills (formato `<nome>/SKILL.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado. O template `opencode` instala as skills em `.opencode/skill/`, onde são descobertas nativamente pelo opencode.
 
 ---
 
@@ -56,10 +56,9 @@ Agents/
 ├── agent-init/              # Código-fonte do CLI
 │   ├── README.md            # Documentação completa do agent-init
 │   └── ...
-├── agents/                  # Agentes especializados
-│   └── issue-architect.md
 ├── .agents/skills/          # Skills no formato <nome>/SKILL.md
 │   ├── refine-issues/SKILL.md
+│   ├── audit-issues/SKILL.md
 │   └── autonomous-batch/SKILL.md
 ├── scripts/                 # Scripts de automação
 │   └── sync-issues.sh       # Sincroniza issues abertas do GitHub

@@ -32,8 +32,8 @@ func TestInstallCreatesFiles(t *testing.T) {
 		t.Errorf("GEMINI.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, "agents", "issue-architect.md")); err != nil {
-		t.Errorf("agents/issue-architect.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "audit-issues", "SKILL.md")); err != nil {
+		t.Errorf(".agents/skills/audit-issues/SKILL.md was not created: %v", err)
 	}
 
 	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md")); err != nil {
@@ -55,7 +55,7 @@ func TestInstallCreatesFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf(".gitignore was not created: %v", err)
 	}
-	for _, entry := range []string{"GEMINI.md", "issues/", "agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"} {
+	for _, entry := range []string{"GEMINI.md", "issues/", ".agents/skills/audit-issues/SKILL.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"} {
 		if !strings.Contains(string(gitignore), entry) {
 			t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
 		}
@@ -163,7 +163,7 @@ func TestEnsureGitignorePreservesCRLF(t *testing.T) {
 	}
 	text := string(content)
 	for _, entry := range []string{
-		"agents/issue-architect.md",
+		".agents/skills/audit-issues/SKILL.md",
 		".agents/skills/refine-issues/SKILL.md",
 		".agents/skills/autonomous-batch/SKILL.md",
 	} {
@@ -199,8 +199,8 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 		t.Errorf("AGENTS.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, ".opencode", "agent", "issue-architect.md")); err != nil {
-		t.Errorf(".opencode/agent/issue-architect.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".opencode", "skill", "audit-issues", "SKILL.md")); err != nil {
+		t.Errorf(".opencode/skill/audit-issues/SKILL.md was not created: %v", err)
 	}
 
 	if _, err := os.Stat(filepath.Join(target, ".opencode", "skill", "refine-issues", "SKILL.md")); err != nil {
@@ -215,7 +215,7 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf(".gitignore was not created: %v", err)
 	}
-	for _, entry := range []string{"AGENTS.md", "issues/", ".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"} {
+	for _, entry := range []string{"AGENTS.md", "issues/", ".opencode/skill/audit-issues/SKILL.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"} {
 		if !strings.Contains(string(gitignore), entry) {
 			t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
 		}
@@ -265,10 +265,10 @@ func TestInstallMultipleAgents(t *testing.T) {
 	for _, entry := range []string{
 		"GEMINI.md",
 		"AGENTS.md",
-		"agents/issue-architect.md",
+		".agents/skills/audit-issues/SKILL.md",
 		".agents/skills/refine-issues/SKILL.md",
 		".agents/skills/autonomous-batch/SKILL.md",
-		".opencode/agent/issue-architect.md",
+		".opencode/skill/audit-issues/SKILL.md",
 		".opencode/skill/refine-issues/SKILL.md",
 		".opencode/skill/autonomous-batch/SKILL.md",
 	} {
@@ -321,7 +321,7 @@ func TestUpgradeUpdatesSkillAndAgent(t *testing.T) {
 	}
 
 	for _, path := range []string{
-		filepath.Join(target, "agents", "issue-architect.md"),
+		filepath.Join(target, ".agents", "skills", "audit-issues", "SKILL.md"),
 		filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md"),
 		filepath.Join(target, ".agents", "skills", "autonomous-batch", "SKILL.md"),
 	} {
@@ -369,16 +369,16 @@ func TestUpgradeInstallsMissingAuxiliaryFilesForExistingAgents(t *testing.T) {
 			promptSource:   "files/GEMINI.md",
 			promptTarget:   "GEMINI.md",
 			missingTarget:  "AGENTS.md",
-			auxiliaryPaths: []string{"agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"},
-			ignoredEntries: []string{"GEMINI.md", "agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md", "issues/"},
+			auxiliaryPaths: []string{".agents/skills/audit-issues/SKILL.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"},
+			ignoredEntries: []string{"GEMINI.md", ".agents/skills/audit-issues/SKILL.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md", "issues/"},
 		},
 		{
 			name:           "opencode",
 			promptSource:   "files/AGENTS.md",
 			promptTarget:   "AGENTS.md",
 			missingTarget:  "GEMINI.md",
-			auxiliaryPaths: []string{".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"},
-			ignoredEntries: []string{"AGENTS.md", ".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md", "issues/"},
+			auxiliaryPaths: []string{".opencode/skill/audit-issues/SKILL.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"},
+			ignoredEntries: []string{"AGENTS.md", ".opencode/skill/audit-issues/SKILL.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md", "issues/"},
 		},
 	}
 
@@ -439,10 +439,10 @@ func TestUpgradeDoesNotInstallFilesWithoutAnAgentPrompt(t *testing.T) {
 	}
 
 	for _, relativePath := range []string{
-		"agents/issue-architect.md",
+		".agents/skills/audit-issues/SKILL.md",
 		".agents/skills/refine-issues/SKILL.md",
 		".agents/skills/autonomous-batch/SKILL.md",
-		".opencode/agent/issue-architect.md",
+		".opencode/skill/audit-issues/SKILL.md",
 		".opencode/skill/refine-issues/SKILL.md",
 		".opencode/skill/autonomous-batch/SKILL.md",
 	} {
@@ -463,8 +463,13 @@ func TestUpgradeRemovesLegacyFlatSkillFiles(t *testing.T) {
 	legacyPaths := []string{
 		filepath.Join(target, ".agents", "skills", "refine-issues.md"),
 		filepath.Join(target, ".agents", "skills", "autonomous-batch.md"),
+		filepath.Join(target, "agents", "issue-architect.md"),
+		filepath.Join(target, ".opencode", "agent", "issue-architect.md"),
 	}
 	for _, path := range legacyPaths {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatalf("failed to create directory for %s: %v", path, err)
+		}
 		if err := os.WriteFile(path, []byte("legacy content"), 0o644); err != nil {
 			t.Fatalf("failed to create legacy skill %s: %v", path, err)
 		}
@@ -477,6 +482,11 @@ func TestUpgradeRemovesLegacyFlatSkillFiles(t *testing.T) {
 	for _, path := range legacyPaths {
 		if _, err := os.Stat(path); err == nil {
 			t.Errorf("legacy skill file %s should have been removed", path)
+		}
+	}
+	for _, relativePath := range []string{"agents", filepath.Join(".opencode", "agent")} {
+		if _, err := os.Stat(filepath.Join(target, relativePath)); err == nil {
+			t.Errorf("empty legacy directory %s should have been removed", relativePath)
 		}
 	}
 	for _, relativePath := range []string{

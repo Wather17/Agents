@@ -116,6 +116,6 @@ Ao parar, registre o motivo na issue/PR, indique exatamente o que foi investigad
 
 ## 8. Skills e Agentes Especializados
 
-- `.opencode/skill/refine-issues/SKILL.md`: refina ideias, audita o código e cria issues prontas.
+- `.opencode/skill/refine-issues/SKILL.md`: entrevista interativa que transforma ideias do usuário em issues prontas.
+- `.opencode/skill/audit-issues/SKILL.md`: auditoria autônoma do repositório que cria issues de QA sem diálogo.
 - `.opencode/skill/autonomous-batch/SKILL.md`: organiza e executa a fila de issues com os gates deste arquivo.
-- `.opencode/agent/issue-architect.md`: agente especializado em requisitos, QA e criação de issues.

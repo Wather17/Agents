@@ -37,7 +37,7 @@ func FilesFor(agent Agent) ([]File, error) {
 	case Gemini:
 		return []File{
 			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true, Prompt: true},
-			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".agents/skills/audit-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".agents/skills/refine-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".agents/skills/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
@@ -45,7 +45,7 @@ func FilesFor(agent Agent) ([]File, error) {
 	case OpenCode:
 		return []File{
 			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true, Prompt: true},
-			{SourcePath: "files/agents/issue-architect.md", TargetPath: ".opencode/agent/issue-architect.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".opencode/skill/audit-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".opencode/skill/refine-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".opencode/skill/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
@@ -68,7 +68,7 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"GEMINI.md",
-			"agents/issue-architect.md",
+			".agents/skills/audit-issues/SKILL.md",
 			".agents/skills/refine-issues/SKILL.md",
 			".agents/skills/autonomous-batch/SKILL.md",
 			"",
@@ -79,7 +79,7 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"AGENTS.md",
-			".opencode/agent/issue-architect.md",
+			".opencode/skill/audit-issues/SKILL.md",
 			".opencode/skill/refine-issues/SKILL.md",
 			".opencode/skill/autonomous-batch/SKILL.md",
 			"",

@@ -194,16 +194,22 @@ func fileExists(path string) (bool, error) {
 	return true, nil
 }
 
-// legacySkillTargets are flat skill paths written by agent-init v0.2.0 and
-// earlier. Skills now use the <name>/SKILL.md layout, and the opencode
-// template installs them under .opencode/skill/.
-var legacySkillTargets = []string{
+// legacyTargets are paths written by agent-init v0.2.0 and earlier. Skills
+// now use the <name>/SKILL.md layout, the audit skill replaced the standalone
+// agent file, and the opencode template installs under .opencode/skill/.
+var legacyTargets = []string{
 	".agents/skills/refine-issues.md",
 	".agents/skills/autonomous-batch.md",
+	"agents/issue-architect.md",
+	".opencode/agent/issue-architect.md",
 }
 
 func removeLegacySkills(targetPath string) error {
-	for _, relativePath := range legacySkillTargets {
+	legacyParents := make(map[string]bool)
+
+	for _, relativePath := range legacyTargets {
+		legacyParents[filepath.Dir(filepath.Join(targetPath, relativePath))] = true
+
 		target := filepath.Join(targetPath, relativePath)
 		exists, err := fileExists(target)
 		if err != nil {
@@ -216,6 +222,12 @@ func removeLegacySkills(targetPath string) error {
 			return fmt.Errorf("removing legacy skill %q: %w", target, err)
 		}
 		fmt.Printf("Removed legacy skill file: %s\n", target)
+	}
+
+	for parent := range legacyParents {
+		if err := os.Remove(parent); err == nil {
+			fmt.Printf("Removed empty legacy directory: %s\n", parent)
+		}
 	}
 	return nil
 }
