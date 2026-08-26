@@ -43,7 +43,8 @@ func TestRunUpgradeContinuesWhenCLISelfUpdateFails(t *testing.T) {
 
 	for _, path := range []string{
 		filepath.Join(target, "agents", "issue-architect.md"),
-		filepath.Join(target, ".agents", "skills", "refine-issues.md"),
+		filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md"),
+		filepath.Join(target, ".agents", "skills", "autonomous-batch", "SKILL.md"),
 	} {
 		if _, err := os.Stat(path); err != nil {
 			t.Errorf("upgrade should install %s using current embedded templates: %v", path, err)

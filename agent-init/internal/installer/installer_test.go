@@ -36,12 +36,12 @@ func TestInstallCreatesFiles(t *testing.T) {
 		t.Errorf("agents/issue-architect.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "refine-issues.md")); err != nil {
-		t.Errorf(".agents/skills/refine-issues.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md")); err != nil {
+		t.Errorf(".agents/skills/refine-issues/SKILL.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "autonomous-batch.md")); err != nil {
-		t.Errorf(".agents/skills/autonomous-batch.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "autonomous-batch", "SKILL.md")); err != nil {
+		t.Errorf(".agents/skills/autonomous-batch/SKILL.md was not created: %v", err)
 	}
 
 	info, err := os.Stat(filepath.Join(target, "scripts", "sync-issues.sh"))
@@ -55,7 +55,7 @@ func TestInstallCreatesFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf(".gitignore was not created: %v", err)
 	}
-	for _, entry := range []string{"GEMINI.md", "issues/", "agents/issue-architect.md", ".agents/skills/refine-issues.md", ".agents/skills/autonomous-batch.md"} {
+	for _, entry := range []string{"GEMINI.md", "issues/", "agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"} {
 		if !strings.Contains(string(gitignore), entry) {
 			t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
 		}
@@ -164,8 +164,8 @@ func TestEnsureGitignorePreservesCRLF(t *testing.T) {
 	text := string(content)
 	for _, entry := range []string{
 		"agents/issue-architect.md",
-		".agents/skills/refine-issues.md",
-		".agents/skills/autonomous-batch.md",
+		".agents/skills/refine-issues/SKILL.md",
+		".agents/skills/autonomous-batch/SKILL.md",
 	} {
 		if !strings.Contains(text, entry+"\r\n") {
 			t.Errorf("expected %q to use CRLF line ending: %q", entry, text)
@@ -199,23 +199,23 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 		t.Errorf("AGENTS.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, "agents", "issue-architect.md")); err != nil {
-		t.Errorf("agents/issue-architect.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".opencode", "agent", "issue-architect.md")); err != nil {
+		t.Errorf(".opencode/agent/issue-architect.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "refine-issues.md")); err != nil {
-		t.Errorf(".agents/skills/refine-issues.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".opencode", "skill", "refine-issues", "SKILL.md")); err != nil {
+		t.Errorf(".opencode/skill/refine-issues/SKILL.md was not created: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(target, ".agents", "skills", "autonomous-batch.md")); err != nil {
-		t.Errorf(".agents/skills/autonomous-batch.md was not created: %v", err)
+	if _, err := os.Stat(filepath.Join(target, ".opencode", "skill", "autonomous-batch", "SKILL.md")); err != nil {
+		t.Errorf(".opencode/skill/autonomous-batch/SKILL.md was not created: %v", err)
 	}
 
 	gitignore, err := os.ReadFile(filepath.Join(target, ".gitignore"))
 	if err != nil {
 		t.Fatalf(".gitignore was not created: %v", err)
 	}
-	for _, entry := range []string{"AGENTS.md", "issues/", "agents/issue-architect.md", ".agents/skills/refine-issues.md", ".agents/skills/autonomous-batch.md"} {
+	for _, entry := range []string{"AGENTS.md", "issues/", ".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"} {
 		if !strings.Contains(string(gitignore), entry) {
 			t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
 		}
@@ -238,15 +238,15 @@ func TestInstallMultipleAgents(t *testing.T) {
 		t.Fatalf("opencode install after gemini should succeed: %v", err)
 	}
 
-	if len(installed) != 1 {
-		t.Fatalf("expected 1 installed file for opencode, got %d", len(installed))
+	if len(installed) != 4 {
+		t.Fatalf("expected 4 installed files for opencode, got %d", len(installed))
 	}
 	if installed[0].Path != filepath.Join(target, "AGENTS.md") {
 		t.Errorf("expected AGENTS.md to be installed, got %s", installed[0].Path)
 	}
 
-	if len(skipped) != 4 {
-		t.Fatalf("expected 4 skipped files for opencode, got %d", len(skipped))
+	if len(skipped) != 1 {
+		t.Fatalf("expected 1 skipped file for opencode, got %d", len(skipped))
 	}
 	foundSync := false
 	for _, s := range skipped {
@@ -262,11 +262,19 @@ func TestInstallMultipleAgents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read .gitignore: %v", err)
 	}
-	if !strings.Contains(string(gitignore), "GEMINI.md") || !strings.Contains(string(gitignore), "AGENTS.md") {
-		t.Errorf(".gitignore should contain both GEMINI.md and AGENTS.md: %s", gitignore)
-	}
-	if !strings.Contains(string(gitignore), "agents/issue-architect.md") || !strings.Contains(string(gitignore), ".agents/skills/refine-issues.md") || !strings.Contains(string(gitignore), ".agents/skills/autonomous-batch.md") {
-		t.Errorf(".gitignore should contain skill and agent entries: %s", gitignore)
+	for _, entry := range []string{
+		"GEMINI.md",
+		"AGENTS.md",
+		"agents/issue-architect.md",
+		".agents/skills/refine-issues/SKILL.md",
+		".agents/skills/autonomous-batch/SKILL.md",
+		".opencode/agent/issue-architect.md",
+		".opencode/skill/refine-issues/SKILL.md",
+		".opencode/skill/autonomous-batch/SKILL.md",
+	} {
+		if !strings.Contains(string(gitignore), entry) {
+			t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
+		}
 	}
 }
 
@@ -314,7 +322,8 @@ func TestUpgradeUpdatesSkillAndAgent(t *testing.T) {
 
 	for _, path := range []string{
 		filepath.Join(target, "agents", "issue-architect.md"),
-		filepath.Join(target, ".agents", "skills", "refine-issues.md"),
+		filepath.Join(target, ".agents", "skills", "refine-issues", "SKILL.md"),
+		filepath.Join(target, ".agents", "skills", "autonomous-batch", "SKILL.md"),
 	} {
 		if err := os.WriteFile(path, []byte("modified"), 0o644); err != nil {
 			t.Fatalf("failed to modify %s: %v", path, err)
@@ -326,8 +335,8 @@ func TestUpgradeUpdatesSkillAndAgent(t *testing.T) {
 		t.Fatalf("upgrade should succeed: %v", err)
 	}
 
-	if len(installed) != 2 {
-		t.Fatalf("expected 2 updated files, got %d", len(installed))
+	if len(installed) != 3 {
+		t.Fatalf("expected 3 updated files, got %d", len(installed))
 	}
 	for _, r := range installed {
 		if r.Ignored != true {
@@ -341,29 +350,35 @@ func TestUpgradeUpdatesSkillAndAgent(t *testing.T) {
 			t.Errorf("%s was not updated to template content", r.Path)
 		}
 	}
-	if len(skipped) != 2 {
-		t.Fatalf("expected 2 skipped files (GEMINI.md and autonomous-batch.md), got %d", len(skipped))
+	if len(skipped) != 1 {
+		t.Fatalf("expected 1 skipped file (GEMINI.md), got %d", len(skipped))
 	}
 }
 
 func TestUpgradeInstallsMissingAuxiliaryFilesForExistingAgents(t *testing.T) {
 	tests := []struct {
-		name          string
-		promptSource  string
-		promptTarget  string
-		missingTarget string
+		name           string
+		promptSource   string
+		promptTarget   string
+		missingTarget  string
+		auxiliaryPaths []string
+		ignoredEntries []string
 	}{
 		{
-			name:          "gemini",
-			promptSource:  "files/GEMINI.md",
-			promptTarget:  "GEMINI.md",
-			missingTarget: "AGENTS.md",
+			name:           "gemini",
+			promptSource:   "files/GEMINI.md",
+			promptTarget:   "GEMINI.md",
+			missingTarget:  "AGENTS.md",
+			auxiliaryPaths: []string{"agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md"},
+			ignoredEntries: []string{"GEMINI.md", "agents/issue-architect.md", ".agents/skills/refine-issues/SKILL.md", ".agents/skills/autonomous-batch/SKILL.md", "issues/"},
 		},
 		{
-			name:          "opencode",
-			promptSource:  "files/AGENTS.md",
-			promptTarget:  "AGENTS.md",
-			missingTarget: "GEMINI.md",
+			name:           "opencode",
+			promptSource:   "files/AGENTS.md",
+			promptTarget:   "AGENTS.md",
+			missingTarget:  "GEMINI.md",
+			auxiliaryPaths: []string{".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md"},
+			ignoredEntries: []string{"AGENTS.md", ".opencode/agent/issue-architect.md", ".opencode/skill/refine-issues/SKILL.md", ".opencode/skill/autonomous-batch/SKILL.md", "issues/"},
 		},
 	}
 
@@ -389,11 +404,8 @@ func TestUpgradeInstallsMissingAuxiliaryFilesForExistingAgents(t *testing.T) {
 				t.Fatalf("expected the existing prompt to be skipped, got %d skipped files", len(skipped))
 			}
 
-			for _, path := range []string{
-				filepath.Join(target, "agents", "issue-architect.md"),
-				filepath.Join(target, ".agents", "skills", "refine-issues.md"),
-				filepath.Join(target, ".agents", "skills", "autonomous-batch.md"),
-			} {
+			for _, relativePath := range tt.auxiliaryPaths {
+				path := filepath.Join(target, relativePath)
 				if _, err := os.Stat(path); err != nil {
 					t.Errorf("expected auxiliary file %s to be installed: %v", path, err)
 				}
@@ -406,7 +418,7 @@ func TestUpgradeInstallsMissingAuxiliaryFilesForExistingAgents(t *testing.T) {
 			if err != nil {
 				t.Fatalf("upgrade should create .gitignore: %v", err)
 			}
-			for _, entry := range []string{tt.promptTarget, "agents/issue-architect.md", ".agents/skills/refine-issues.md", ".agents/skills/autonomous-batch.md", "issues/"} {
+			for _, entry := range tt.ignoredEntries {
 				if !strings.Contains(string(gitignore), entry) {
 					t.Errorf(".gitignore missing expected entry %q: %s", entry, gitignore)
 				}
@@ -426,13 +438,53 @@ func TestUpgradeDoesNotInstallFilesWithoutAnAgentPrompt(t *testing.T) {
 		t.Fatalf("upgrade without an installed agent should do nothing: installed=%d skipped=%d", len(installed), len(skipped))
 	}
 
-	for _, path := range []string{
-		filepath.Join(target, "agents", "issue-architect.md"),
-		filepath.Join(target, ".agents", "skills", "refine-issues.md"),
-		filepath.Join(target, ".agents", "skills", "autonomous-batch.md"),
+	for _, relativePath := range []string{
+		"agents/issue-architect.md",
+		".agents/skills/refine-issues/SKILL.md",
+		".agents/skills/autonomous-batch/SKILL.md",
+		".opencode/agent/issue-architect.md",
+		".opencode/skill/refine-issues/SKILL.md",
+		".opencode/skill/autonomous-batch/SKILL.md",
 	} {
+		path := filepath.Join(target, relativePath)
 		if _, err := os.Stat(path); err == nil {
 			t.Errorf("upgrade should not install auxiliary file %s without an agent prompt", path)
+		}
+	}
+}
+
+func TestUpgradeRemovesLegacyFlatSkillFiles(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("install should succeed: %v", err)
+	}
+
+	legacyPaths := []string{
+		filepath.Join(target, ".agents", "skills", "refine-issues.md"),
+		filepath.Join(target, ".agents", "skills", "autonomous-batch.md"),
+	}
+	for _, path := range legacyPaths {
+		if err := os.WriteFile(path, []byte("legacy content"), 0o644); err != nil {
+			t.Fatalf("failed to create legacy skill %s: %v", path, err)
+		}
+	}
+
+	if _, _, err := Upgrade(target); err != nil {
+		t.Fatalf("upgrade should succeed: %v", err)
+	}
+
+	for _, path := range legacyPaths {
+		if _, err := os.Stat(path); err == nil {
+			t.Errorf("legacy skill file %s should have been removed", path)
+		}
+	}
+	for _, relativePath := range []string{
+		filepath.Join(".agents", "skills", "refine-issues", "SKILL.md"),
+		filepath.Join(".agents", "skills", "autonomous-batch", "SKILL.md"),
+	} {
+		if _, err := os.Stat(filepath.Join(target, relativePath)); err != nil {
+			t.Errorf("expected %s to be installed: %v", relativePath, err)
 		}
 	}
 }

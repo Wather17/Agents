@@ -1,3 +1,8 @@
+---
+name: autonomous-batch
+description: Organiza e executa a fila de issues prontas em lotes autônomos, uma issue por branch e PR, com gates de aceite e CI antes do merge. Use ao iniciar uma sessão de trabalho para sincronizar issues do GitHub, priorizar e resolver o backlog continuamente.
+---
+
 # Skill: Execução Autônoma em Lotes
 
 Esta skill coordena a execução contínua de issues prontas. Um lote é uma fila de trabalho; cada issue continua isolada em sua própria branch, commits e PR.

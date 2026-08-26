@@ -38,16 +38,16 @@ func FilesFor(agent Agent) ([]File, error) {
 		return []File{
 			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true, Prompt: true},
 			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
-			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
-			{SourcePath: "files/skills/autonomous-batch.md", TargetPath: ".agents/skills/autonomous-batch.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".agents/skills/refine-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".agents/skills/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	case OpenCode:
 		return []File{
 			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true, Prompt: true},
-			{SourcePath: "files/agents/issue-architect.md", TargetPath: "agents/issue-architect.md", Executable: false, Ignored: true},
-			{SourcePath: "files/skills/refine-issues.md", TargetPath: ".agents/skills/refine-issues.md", Executable: false, Ignored: true},
-			{SourcePath: "files/skills/autonomous-batch.md", TargetPath: ".agents/skills/autonomous-batch.md", Executable: false, Ignored: true},
+			{SourcePath: "files/agents/issue-architect.md", TargetPath: ".opencode/agent/issue-architect.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".opencode/skill/refine-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".opencode/skill/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	default:
@@ -69,8 +69,8 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 			"# AI agent configuration files",
 			"GEMINI.md",
 			"agents/issue-architect.md",
-			".agents/skills/refine-issues.md",
-			".agents/skills/autonomous-batch.md",
+			".agents/skills/refine-issues/SKILL.md",
+			".agents/skills/autonomous-batch/SKILL.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",
@@ -79,9 +79,9 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 		return []string{
 			"# AI agent configuration files",
 			"AGENTS.md",
-			"agents/issue-architect.md",
-			".agents/skills/refine-issues.md",
-			".agents/skills/autonomous-batch.md",
+			".opencode/agent/issue-architect.md",
+			".opencode/skill/refine-issues/SKILL.md",
+			".opencode/skill/autonomous-batch/SKILL.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",

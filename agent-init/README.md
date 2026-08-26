@@ -39,10 +39,13 @@ agent-init
 
 Por padrão, o template `gemini` é usado. O comando instala:
 
-- `GEMINI.md` — prompt de persona e workflow
-- `agents/issue-architect.md` — agente especializado (Issue Architect & Quality Guard)
-- `.agents/skills/refine-issues.md` — skill de refinamento de ideias e criação de issues
-- `.agents/skills/autonomous-batch.md` — skill de execução autônoma em lotes
+- `GEMINI.md` (ou `AGENTS.md` para o template `opencode`) — prompt de persona e workflow
+- Agente `issue-architect` — requisitos, QA e criação de issues
+  - gemini: `agents/issue-architect.md`
+  - opencode: `.opencode/agent/issue-architect.md`
+- Skills com frontmatter no formato `<nome>/SKILL.md`
+  - gemini: `.agents/skills/refine-issues/SKILL.md` e `.agents/skills/autonomous-batch/SKILL.md`
+  - opencode: `.opencode/skill/refine-issues/SKILL.md` e `.opencode/skill/autonomous-batch/SKILL.md` (descoberta nativa pelo opencode)
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
@@ -59,10 +62,11 @@ O commit gerado pelo CLI inclui:
 Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` para manter o repositório limpo:
 
 - `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
-- `agents/issue-architect.md`
-- `.agents/skills/refine-issues.md`
-- `.agents/skills/autonomous-batch.md`
+- Arquivo do agente (`agents/issue-architect.md` ou `.opencode/agent/issue-architect.md`)
+- Skills (`<skills>/<nome>/SKILL.md` conforme o template)
 - `issues/`
+
+O `upgrade` remove automaticamente os arquivos legados `.agents/skills/refine-issues.md` e `.agents/skills/autonomous-batch.md` de versões anteriores.
 
 ### Templates disponíveis
 
@@ -100,7 +104,7 @@ agent-init upgrade
 O que ele faz:
 - Tenta atualizar o CLI pela última GitHub Release e reexecuta o comando usando o binário atualizado
 - Atualiza os prompts e arquivos auxiliares já existentes no repo
-- Instala os arquivos auxiliares ausentes (`agents/issue-architect.md`, `.agents/skills/refine-issues.md` e `.agents/skills/autonomous-batch.md`) quando `GEMINI.md` ou `AGENTS.md` já existe
+- Instala os arquivos auxiliares ausentes (agente e skills) quando `GEMINI.md` ou `AGENTS.md` já existe
 - Não instala um novo template de agente (`GEMINI.md` ou `AGENTS.md`)
 - Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
 - Atualiza o `.gitignore` e cria um commit se for um repo git

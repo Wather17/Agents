@@ -116,6 +116,6 @@ Ao parar, registre o motivo na issue/PR, indique exatamente o que foi investigad
 
 ## 8. Skills e Agentes Especializados
 
-- `.agents/skills/refine-issues.md`: refina ideias, audita o código e cria issues prontas.
-- `.agents/skills/autonomous-batch.md`: organiza e executa a fila de issues com os gates deste arquivo.
+- `.agents/skills/refine-issues/SKILL.md`: refina ideias, audita o código e cria issues prontas.
+- `.agents/skills/autonomous-batch/SKILL.md`: organiza e executa a fila de issues com os gates deste arquivo.
 - `agents/issue-architect.md`: agente especializado em requisitos, QA e criação de issues.
