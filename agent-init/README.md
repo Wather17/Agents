@@ -37,13 +37,15 @@ Dentro do repositório que você quer configurar, execute:
 agent-init
 ```
 
-Por padrão, o template `gemini` é usado. O comando instala:
+Por padrão, o template `antigravity` é usado. `gemini` continua aceito como alias compatível. O comando instala:
 
-- `GEMINI.md` (ou `AGENTS.md` para o template `opencode`) — prompt de persona e workflow
+- `GEMINI.md`, `AGENTS.md` ou `CLAUDE.md` — prompt de persona e workflow
 - Skills com frontmatter no formato `<nome>/SKILL.md`
-  - gemini: `.agents/skills/audit-issues/SKILL.md`, `.agents/skills/refine-issues/SKILL.md` e `.agents/skills/autonomous-batch/SKILL.md`
+  - antigravity/gemini e codex: `.agents/skills/<nome>/SKILL.md`
   - opencode: `.opencode/skill/<nome>/SKILL.md` para as mesmas três skills (descoberta nativa pelo opencode)
+  - claude: `.claude/skills/<nome>/SKILL.md`
 - `scripts/sync-issues.sh` — script de sincronização de issues do GitHub
+- `.agent-init.json` — manifesto local com schema versionado que registra os agentes instalados
 - Atualiza o `.gitignore` para ignorar arquivos locais do agente e as issues sincronizadas
 - Cria um commit com Conventional Commit
 
@@ -60,8 +62,9 @@ O commit gerado pelo CLI inclui:
 
 Os arquivos abaixo são instalados localmente, mas adicionados ao `.gitignore` para manter o repositório limpo:
 
-- `GEMINI.md` (ou `AGENTS.md` para o template `opencode`)
+- `GEMINI.md`, `AGENTS.md` ou `CLAUDE.md`
 - Skills (`<skills>/<nome>/SKILL.md` conforme o template)
+- `.agent-init.json`
 - `issues/`
 
 O `upgrade` remove automaticamente arquivos legados de versões anteriores, incluindo os flats `.agents/skills/*.md`, o agente `agents/issue-architect.md` e `.opencode/agent/issue-architect.md`.
@@ -70,14 +73,19 @@ O `upgrade` remove automaticamente arquivos legados de versões anteriores, incl
 
 | Template   | Arquivo instalado | Convenção    |
 |------------|-------------------|--------------|
-| `gemini`   | `GEMINI.md`       | Gemini CLI   |
-| `opencode` | `AGENTS.md`       | OpenCode     |
+| `antigravity` | `GEMINI.md` | Antigravity |
+| `gemini` | `GEMINI.md` | Alias de `antigravity` |
+| `opencode` | `AGENTS.md` | OpenCode |
+| `codex` | `AGENTS.md` | Codex |
+| `claude` | `CLAUDE.md` | Claude Code |
+
+Codex e OpenCode compartilham um `AGENTS.md` independente do host, mas mantêm skills em seus diretórios nativos. Para instalar vários agentes no mesmo repositório, execute o comando uma vez para cada alvo; o manifesto e os arquivos compartilhados são atualizados de forma idempotente.
 
 ## Flags
 
 | Flag          | Padrão    | Descrição                                      |
 |---------------|-----------|------------------------------------------------|
-| `--agent`     | `gemini`  | Template do agente a ser instalado             |
+| `--agent`     | `antigravity` | Template do agente a ser instalado          |
 | `--path`      | `.`       | Caminho do repositório alvo                    |
 | `--force`     | `false`   | Sobrescreve arquivos existentes                |
 | `--no-commit` | `false`   | Não cria o commit automaticamente              |
@@ -102,10 +110,12 @@ agent-init upgrade
 O que ele faz:
 - Tenta atualizar o CLI pela última GitHub Release e reexecuta o comando usando o binário atualizado
 - Atualiza os prompts e arquivos auxiliares já existentes no repo
-- Instala os arquivos auxiliares ausentes (agente e skills) quando `GEMINI.md` ou `AGENTS.md` já existe
-- Não instala um novo template de agente (`GEMINI.md` ou `AGENTS.md`)
+- Instala as skills ausentes dos agentes registrados em `.agent-init.json` quando o prompt correspondente existe
+- Não instala um novo template de agente (`GEMINI.md`, `AGENTS.md` ou `CLAUDE.md`)
 - Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
 - Atualiza o `.gitignore` e cria um commit se for um repo git
+
+Na primeira atualização de uma instalação antiga sem manifesto, `GEMINI.md` é migrado como `antigravity` e `AGENTS.md` como `opencode`, preservando a interpretação das versões anteriores.
 
 Se a atualização automática do CLI falhar, o comando exibe um aviso e continua usando os templates embutidos na versão em execução.
 
@@ -134,11 +144,15 @@ O arquivo de prompt e a skill `autonomous-batch` orientam a IA a:
 ## Exemplos
 
 ```bash
-# Instalar o template padrão (gemini) no diretório atual
+# Instalar o template padrão (antigravity) no diretório atual
 agent-init
 
 # Instalar o template do OpenCode
 agent-init --agent opencode
+
+# Instalar Codex e Claude Code no mesmo repositório
+agent-init --agent codex
+agent-init --agent claude
 
 # Instalar em outro diretório
 agent-init --path /caminho/para/repo

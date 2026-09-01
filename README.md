@@ -22,8 +22,10 @@ O binário será instalado em `$GOPATH/bin`. Certifique-se de que esse diretóri
 
 | Comando | Descrição |
 |---------|-----------|
-| `agent-init` | Instala o template padrão (`GEMINI.md`) no repositório atual |
+| `agent-init` | Instala o template padrão do Antigravity (`GEMINI.md`) |
 | `agent-init --agent opencode` | Instala o template do OpenCode (`AGENTS.md`) |
+| `agent-init --agent codex` | Instala o template do Codex (`AGENTS.md`) |
+| `agent-init --agent claude` | Instala o template do Claude Code (`CLAUDE.md`) |
 | `agent-init update` | Atualiza o CLI para a última versão |
 | `agent-init upgrade` | Atualiza os prompts já instalados no repositório atual |
 | `agent-init version` | Exibe a versão e os metadados do build |
@@ -36,10 +38,13 @@ Para mais detalhes, veja o [README completo do agent-init](agent-init/README.md)
 
 | Template | Arquivo instalado | Convenção |
 |----------|-------------------|-----------|
-| `gemini` | `GEMINI.md` | Gemini CLI |
+| `antigravity` | `GEMINI.md` | Antigravity |
+| `gemini` | `GEMINI.md` | Alias compatível de `antigravity` |
 | `opencode` | `AGENTS.md` | OpenCode |
+| `codex` | `AGENTS.md` | Codex |
+| `claude` | `CLAUDE.md` | Claude Code |
 
-Os arquivos de prompt (`GEMINI.md`, `AGENTS.md`) e as skills (formato `<nome>/SKILL.md`) são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado. O template `opencode` instala as skills em `.opencode/skill/`, onde são descobertas nativamente pelo opencode.
+Os prompts, as skills e o manifesto local `.agent-init.json` são adicionados ao `.gitignore` do repositório alvo para manter o histórico limpo. O script `scripts/sync-issues.sh` é versionado. Cada alvo recebe as skills no diretório em que são descobertas nativamente; Codex e OpenCode compartilham um `AGENTS.md` portável e podem coexistir.
 
 ---
 
