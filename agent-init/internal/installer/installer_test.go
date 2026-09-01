@@ -222,6 +222,84 @@ func TestInstallCreatesOpenCodeFiles(t *testing.T) {
 	}
 }
 
+func TestInstallCreatesCodexAndClaudeFiles(t *testing.T) {
+	tests := []struct {
+		name        string
+		agent       templates.Agent
+		prompt      string
+		skillTarget string
+	}{
+		{name: "codex", agent: templates.Codex, prompt: "AGENTS.md", skillTarget: ".agents/skills/audit-issues/SKILL.md"},
+		{name: "claude", agent: templates.Claude, prompt: "CLAUDE.md", skillTarget: ".claude/skills/audit-issues/SKILL.md"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			target := t.TempDir()
+			installed, skipped, err := Install(Options{TargetPath: target, Agent: tt.agent})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(installed) != 5 || len(skipped) != 0 {
+				t.Fatalf("unexpected results: installed=%d skipped=%d", len(installed), len(skipped))
+			}
+			for _, path := range []string{tt.prompt, tt.skillTarget, manifestFilename} {
+				if _, err := os.Stat(filepath.Join(target, path)); err != nil {
+					t.Errorf("expected %s: %v", path, err)
+				}
+			}
+		})
+	}
+}
+
+func TestInstallCodexAndOpenCodeSharePrompt(t *testing.T) {
+	target := t.TempDir()
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Codex}); err != nil {
+		t.Fatal(err)
+	}
+	installed, skipped, err := Install(Options{TargetPath: target, Agent: templates.OpenCode})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(installed) != 3 || len(skipped) != 2 {
+		t.Fatalf("expected only opencode skills installed: installed=%d skipped=%d", len(installed), len(skipped))
+	}
+	for _, result := range skipped {
+		if result.Path != filepath.Join(target, "AGENTS.md") && result.Path != filepath.Join(target, "scripts/sync-issues.sh") {
+			t.Errorf("unexpected skipped file: %s", result.Path)
+		}
+	}
+}
+
+func TestUpgradeRestoresRegisteredAgentSkills(t *testing.T) {
+	tests := []struct {
+		name  string
+		agent templates.Agent
+		path  string
+	}{
+		{name: "codex", agent: templates.Codex, path: ".agents/skills/audit-issues/SKILL.md"},
+		{name: "opencode", agent: templates.OpenCode, path: ".opencode/skill/audit-issues/SKILL.md"},
+		{name: "claude", agent: templates.Claude, path: ".claude/skills/audit-issues/SKILL.md"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			target := t.TempDir()
+			if _, _, err := Install(Options{TargetPath: target, Agent: tt.agent}); err != nil {
+				t.Fatal(err)
+			}
+			path := filepath.Join(target, tt.path)
+			if err := os.Remove(path); err != nil {
+				t.Fatal(err)
+			}
+			if _, _, err := Upgrade(target); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := os.Stat(path); err != nil {
+				t.Fatalf("skill was not restored: %v", err)
+			}
+		})
+	}
+}
+
 func TestInstallMultipleAgents(t *testing.T) {
 	target := t.TempDir()
 

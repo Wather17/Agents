@@ -39,7 +39,7 @@ func main() {
 	}
 
 	var (
-		agentFlag = flag.String("agent", "gemini", "Agent template to install (e.g., gemini)")
+		agentFlag = flag.String("agent", "antigravity", "Agent template to install (antigravity, codex, opencode, or claude)")
 		forceFlag = flag.Bool("force", false, "Overwrite existing files")
 		pathFlag  = flag.String("path", ".", "Target repository path")
 		noCommit  = flag.Bool("no-commit", false, "Skip creating a git commit")
@@ -91,7 +91,10 @@ func runInstall(agentName, targetPath string, force, skipCommit bool) error {
 		return fmt.Errorf("resolving target path: %w", err)
 	}
 
-	agent := templates.Agent(agentName)
+	agent, err := templates.ParseAgent(agentName)
+	if err != nil {
+		return err
+	}
 
 	installed, skipped, err := installer.Install(installer.Options{
 		TargetPath: absPath,

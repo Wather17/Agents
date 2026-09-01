@@ -2,6 +2,28 @@ package templates
 
 import "testing"
 
+func TestParseAgent(t *testing.T) {
+	tests := map[string]Agent{
+		"antigravity": Antigravity,
+		"gemini":      Antigravity,
+		"opencode":    OpenCode,
+		"codex":       Codex,
+		"claude":      Claude,
+	}
+	for input, expected := range tests {
+		agent, err := ParseAgent(input)
+		if err != nil {
+			t.Fatalf("ParseAgent(%q) returned an error: %v", input, err)
+		}
+		if agent != expected {
+			t.Errorf("ParseAgent(%q) = %q, want %q", input, agent, expected)
+		}
+	}
+	if _, err := ParseAgent("unknown"); err == nil {
+		t.Fatal("expected unsupported agent to fail")
+	}
+}
+
 func TestFilesForGemini(t *testing.T) {
 	files, err := FilesFor(Gemini)
 	if err != nil {
@@ -92,6 +114,32 @@ func TestFilesForOpenCode(t *testing.T) {
 	}
 }
 
+func TestFilesForCodexAndClaude(t *testing.T) {
+	tests := []struct {
+		agent       Agent
+		prompt      string
+		skillPrefix string
+	}{
+		{agent: Codex, prompt: "AGENTS.md", skillPrefix: ".agents/skills"},
+		{agent: Claude, prompt: "CLAUDE.md", skillPrefix: ".claude/skills"},
+	}
+	for _, tt := range tests {
+		files, err := FilesFor(tt.agent)
+		if err != nil {
+			t.Fatalf("FilesFor(%s) returned an error: %v", tt.agent, err)
+		}
+		if len(files) != 5 {
+			t.Fatalf("FilesFor(%s) returned %d files, want 5", tt.agent, len(files))
+		}
+		if files[0].TargetPath != tt.prompt || !files[0].Prompt {
+			t.Errorf("unexpected prompt for %s: %+v", tt.agent, files[0])
+		}
+		if files[1].TargetPath != tt.skillPrefix+"/audit-issues/SKILL.md" {
+			t.Errorf("unexpected skill path for %s: %s", tt.agent, files[1].TargetPath)
+		}
+	}
+}
+
 func TestIgnoredEntriesIncludeSkillAndAgent(t *testing.T) {
 	expectedByAgent := map[Agent][]string{
 		Gemini: {
@@ -132,7 +180,7 @@ func TestIgnoredEntriesIncludeSkillAndAgent(t *testing.T) {
 }
 
 func TestReadEmbeddedFiles(t *testing.T) {
-	agents := []Agent{Gemini, OpenCode}
+	agents := []Agent{Antigravity, OpenCode, Codex, Claude}
 	for _, agent := range agents {
 		files, _ := FilesFor(agent)
 		for _, file := range files {

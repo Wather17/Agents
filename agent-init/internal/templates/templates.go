@@ -13,11 +13,33 @@ var fs embed.FS
 type Agent string
 
 const (
-	// Gemini is the default agent template.
-	Gemini Agent = "gemini"
+	// Antigravity is the default agent template.
+	Antigravity Agent = "antigravity"
+	// Gemini is a backwards-compatible name for Antigravity.
+	Gemini Agent = Antigravity
 	// OpenCode is the OpenCode agent template.
 	OpenCode Agent = "opencode"
+	// Codex is the OpenAI Codex agent template.
+	Codex Agent = "codex"
+	// Claude is the Claude Code agent template.
+	Claude Agent = "claude"
 )
+
+// ParseAgent normalizes a CLI agent name to its canonical identifier.
+func ParseAgent(name string) (Agent, error) {
+	switch Agent(name) {
+	case "gemini", Antigravity:
+		return Antigravity, nil
+	case OpenCode:
+		return OpenCode, nil
+	case Codex:
+		return Codex, nil
+	case Claude:
+		return Claude, nil
+	default:
+		return "", fmt.Errorf("unsupported agent: %q", name)
+	}
+}
 
 // File represents a file to be installed for a given agent.
 type File struct {
@@ -34,7 +56,7 @@ type File struct {
 // FilesFor returns the list of files to install for the given agent.
 func FilesFor(agent Agent) ([]File, error) {
 	switch agent {
-	case Gemini:
+	case Antigravity:
 		return []File{
 			{SourcePath: "files/GEMINI.md", TargetPath: "GEMINI.md", Executable: false, Ignored: true, Prompt: true},
 			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".agents/skills/audit-issues/SKILL.md", Executable: false, Ignored: true},
@@ -48,6 +70,22 @@ func FilesFor(agent Agent) ([]File, error) {
 			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".opencode/skill/audit-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".opencode/skill/refine-issues/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".opencode/skill/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
+		}, nil
+	case Codex:
+		return []File{
+			{SourcePath: "files/AGENTS.md", TargetPath: "AGENTS.md", Executable: false, Ignored: true, Prompt: true},
+			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".agents/skills/audit-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".agents/skills/refine-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".agents/skills/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
+		}, nil
+	case Claude:
+		return []File{
+			{SourcePath: "files/AGENTS.md", TargetPath: "CLAUDE.md", Executable: false, Ignored: true, Prompt: true},
+			{SourcePath: "files/skills/audit-issues/SKILL.md", TargetPath: ".claude/skills/audit-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/refine-issues/SKILL.md", TargetPath: ".claude/skills/refine-issues/SKILL.md", Executable: false, Ignored: true},
+			{SourcePath: "files/skills/autonomous-batch/SKILL.md", TargetPath: ".claude/skills/autonomous-batch/SKILL.md", Executable: false, Ignored: true},
 			{SourcePath: "files/sync-issues.sh", TargetPath: "scripts/sync-issues.sh", Executable: true, Ignored: false},
 		}, nil
 	default:
@@ -64,9 +102,10 @@ func Read(sourcePath string) ([]byte, error) {
 // installed files.
 func IgnoredEntries(agent Agent) ([]string, error) {
 	switch agent {
-	case Gemini:
+	case Antigravity:
 		return []string{
 			"# AI agent configuration files",
+			".agent-init.json",
 			"GEMINI.md",
 			".agents/skills/audit-issues/SKILL.md",
 			".agents/skills/refine-issues/SKILL.md",
@@ -78,10 +117,35 @@ func IgnoredEntries(agent Agent) ([]string, error) {
 	case OpenCode:
 		return []string{
 			"# AI agent configuration files",
+			".agent-init.json",
 			"AGENTS.md",
 			".opencode/skill/audit-issues/SKILL.md",
 			".opencode/skill/refine-issues/SKILL.md",
 			".opencode/skill/autonomous-batch/SKILL.md",
+			"",
+			"# Synced GitHub issues",
+			"issues/",
+		}, nil
+	case Codex:
+		return []string{
+			"# AI agent configuration files",
+			".agent-init.json",
+			"AGENTS.md",
+			".agents/skills/audit-issues/SKILL.md",
+			".agents/skills/refine-issues/SKILL.md",
+			".agents/skills/autonomous-batch/SKILL.md",
+			"",
+			"# Synced GitHub issues",
+			"issues/",
+		}, nil
+	case Claude:
+		return []string{
+			"# AI agent configuration files",
+			".agent-init.json",
+			"CLAUDE.md",
+			".claude/skills/audit-issues/SKILL.md",
+			".claude/skills/refine-issues/SKILL.md",
+			".claude/skills/autonomous-batch/SKILL.md",
 			"",
 			"# Synced GitHub issues",
 			"issues/",

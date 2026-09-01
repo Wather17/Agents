@@ -114,8 +114,8 @@ Pare somente quando ocorrer uma condição de bloqueio real:
 
 Ao parar, registre o motivo na issue/PR, indique exatamente o que foi investigado e formule a menor pergunta necessária. Ao terminar o lote, informe apenas issues concluídas, bloqueadas e o próximo passo necessário.
 
-## 8. Skills e Agentes Especializados
+## 8. Skills Especializadas
 
-- `.agents/skills/refine-issues/SKILL.md`: entrevista interativa que transforma ideias do usuário em issues prontas.
-- `.agents/skills/audit-issues/SKILL.md`: auditoria autônoma do repositório que cria issues de QA sem diálogo.
-- `.agents/skills/autonomous-batch/SKILL.md`: organiza e executa a fila de issues com os gates deste arquivo.
+- `refine-issues`: entrevista interativa que transforma ideias do usuário em issues prontas.
+- `audit-issues`: auditoria autônoma do repositório que cria issues de QA sem diálogo.
+- `autonomous-batch`: organiza e executa a fila de issues com os gates deste arquivo.

@@ -32,6 +32,10 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	state, manifestExists, err := readManifest(opts.TargetPath)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	installed = make([]Result, 0, len(files))
 	skipped = make([]Result, 0, len(files))
@@ -79,6 +83,13 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 		return installed, skipped, fmt.Errorf("updating .gitignore: %w", err)
 	}
 
+	manifestChanged := addManifestAgent(&state, opts.Agent)
+	if !manifestExists || manifestChanged {
+		if err := writeManifest(opts.TargetPath, state); err != nil {
+			return installed, skipped, err
+		}
+	}
+
 	return installed, skipped, nil
 }
 
@@ -91,17 +102,28 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 func Upgrade(targetPath string) (installed []Result, skipped []Result, err error) {
 	installed = make([]Result, 0)
 	skipped = make([]Result, 0)
+	state, manifestExists, err := readManifest(targetPath)
+	if err != nil {
+		return installed, skipped, err
+	}
+	if !manifestExists {
+		state, err = inferLegacyManifest(targetPath)
+		if err != nil {
+			return installed, skipped, err
+		}
+	}
+	if len(state.Agents) == 0 {
+		return installed, skipped, nil
+	}
 
 	if err := removeLegacySkills(targetPath); err != nil {
 		return installed, skipped, err
 	}
 
-	agents := []templates.Agent{templates.Gemini, templates.OpenCode}
-
 	seen := make(map[string]bool)
 	files := make([]templates.File, 0)
 
-	for _, agent := range agents {
+	for _, agent := range state.Agents {
 		agentFiles, err := templates.FilesFor(agent)
 		if err != nil {
 			return installed, skipped, err
@@ -178,6 +200,12 @@ func Upgrade(targetPath string) (installed []Result, skipped []Result, err error
 			return installed, skipped, fmt.Errorf("writing file %q: %w", target, err)
 		}
 		installed = append(installed, Result{Path: target, Ignored: file.Ignored})
+	}
+
+	if !manifestExists {
+		if err := writeManifest(targetPath, state); err != nil {
+			return installed, skipped, err
+		}
 	}
 
 	return installed, skipped, nil

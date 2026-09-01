@@ -45,10 +45,7 @@ Não abra issues para estilo, nomenclatura, opiniões arquiteturais sem impacto 
 
 ## 4. Formato das Issues
 
-Cada issue segue obrigatoriamente o template estrito e o gate de prontidão definidos na skill `refine-issues`:
-
-- gemini: `.agents/skills/refine-issues/SKILL.md`
-- opencode: `.opencode/skill/refine-issues/SKILL.md`
+Cada issue segue obrigatoriamente o template estrito e o gate de prontidão definidos na skill `refine-issues` instalada no ambiente atual.
 
 Adaptações para o contexto de auditoria:
 
