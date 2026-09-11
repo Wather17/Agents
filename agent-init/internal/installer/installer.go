@@ -18,6 +18,11 @@ type Options struct {
 	Force      bool
 }
 
+// UpgradeOptions controls which additional files are eligible for upgrade.
+type UpgradeOptions struct {
+	IncludeShared bool
+}
+
 // Result describes a file handled during installation.
 type Result struct {
 	Path    string
@@ -100,6 +105,13 @@ func Install(opts Options) (installed []Result, skipped []Result, err error) {
 // files that were installed or updated and the files that were skipped because
 // they already match the latest template.
 func Upgrade(targetPath string) (installed []Result, skipped []Result, err error) {
+	return UpgradeWithOptions(targetPath, UpgradeOptions{})
+}
+
+// UpgradeWithOptions behaves like Upgrade and can optionally include shared
+// files in the update. Shared files are still processed at most once even when
+// multiple agents are installed in the target directory.
+func UpgradeWithOptions(targetPath string, opts UpgradeOptions) (installed []Result, skipped []Result, err error) {
 	installed = make([]Result, 0)
 	skipped = make([]Result, 0)
 	state, manifestExists, err := readManifest(targetPath)
@@ -147,9 +159,10 @@ func Upgrade(targetPath string) (installed []Result, skipped []Result, err error
 		}
 
 		for _, file := range agentFiles {
-			// Only manage ignored agent files, never shared scripts, and never
-			// process the same shared file twice across agents.
-			if !file.Ignored || seen[file.TargetPath] {
+			// Manage ignored agent files and, when explicitly requested, the
+			// shared synchronizer. Never process the same file twice across agents.
+			shared := opts.IncludeShared && file.TargetPath == sharedSyncIssuesPath
+			if (!file.Ignored && !shared) || seen[file.TargetPath] {
 				continue
 			}
 			seen[file.TargetPath] = true
@@ -221,6 +234,8 @@ func fileExists(path string) (bool, error) {
 	}
 	return true, nil
 }
+
+const sharedSyncIssuesPath = "scripts/sync-issues.sh"
 
 // legacyTargets are paths written by agent-init v0.2.0 and earlier. Skills
 // now use the <name>/SKILL.md layout, the audit skill replaced the standalone

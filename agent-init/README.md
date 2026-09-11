@@ -112,8 +112,16 @@ O que ele faz:
 - Atualiza os prompts e arquivos auxiliares já existentes no repo
 - Instala as skills ausentes dos agentes registrados em `.agent-init.json` quando o prompt correspondente existe
 - Não instala um novo template de agente (`GEMINI.md`, `AGENTS.md` ou `CLAUDE.md`)
-- Não sobrescreve `scripts/sync-issues.sh` (para isso, use `agent-init --force`)
+- Não sobrescreve `scripts/sync-issues.sh` por padrão, preservando customizações locais
 - Atualiza o `.gitignore` e cria um commit se for um repo git
+
+Para atualizar também o arquivo compartilhado `scripts/sync-issues.sh` em uma única operação, use:
+
+```bash
+agent-init upgrade --force-shared
+```
+
+Essa opção atualiza o sincronizador mesmo quando ele foi customizado, mas mantém o comportamento de `upgrade` para prompts e skills. O comando `agent-init --force` continua sobrescrevendo todos os arquivos do agente selecionado.
 
 Na primeira atualização de uma instalação antiga sem manifesto, `GEMINI.md` é migrado como `antigravity` e `AGENTS.md` como `opencode`, preservando a interpretação das versões anteriores.
 
@@ -171,6 +179,9 @@ agent-init version
 
 # Atualizar os prompts instalados no repo atual
 agent-init upgrade
+
+# Atualizar prompts, skills e o sincronizador compartilhado
+agent-init upgrade --force-shared
 ```
 
 ## Repositórios que não são git

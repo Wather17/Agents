@@ -55,6 +55,7 @@ func main() {
 func runUpgradeCommand() error {
 	var pathFlag = flag.String("path", ".", "Target repository path")
 	var noCommit = flag.Bool("no-commit", false, "Skip creating a git commit")
+	var forceShared = flag.Bool("force-shared", false, "Overwrite shared files such as scripts/sync-issues.sh")
 	flag.CommandLine.Parse(os.Args[2:])
 
 	absPath, err := filepath.Abs(*pathFlag)
@@ -70,7 +71,9 @@ func runUpgradeCommand() error {
 		}
 	}
 
-	installed, skipped, err := installer.Upgrade(absPath)
+	installed, skipped, err := installer.UpgradeWithOptions(absPath, installer.UpgradeOptions{
+		IncludeShared: *forceShared,
+	})
 	if err != nil {
 		return err
 	}
