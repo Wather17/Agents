@@ -632,3 +632,111 @@ func TestUpgradeDoesNotTouchSharedScripts(t *testing.T) {
 		t.Error("sync-issues.sh should not be modified by upgrade")
 	}
 }
+
+func TestUpgradeWithOptionsUpdatesSharedScriptOnceForMultipleAgents(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("gemini install should succeed: %v", err)
+	}
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.OpenCode}); err != nil {
+		t.Fatalf("opencode install should succeed: %v", err)
+	}
+
+	syncPath := filepath.Join(target, sharedSyncIssuesPath)
+	if err := os.WriteFile(syncPath, []byte("custom sync script"), 0o755); err != nil {
+		t.Fatalf("failed to customize sync-issues.sh: %v", err)
+	}
+
+	installed, skipped, err := UpgradeWithOptions(target, UpgradeOptions{IncludeShared: true})
+	if err != nil {
+		t.Fatalf("upgrade with shared files should succeed: %v", err)
+	}
+	if len(installed) != 1 {
+		t.Fatalf("expected one updated shared file, got %d", len(installed))
+	}
+	if installed[0].Path != syncPath {
+		t.Fatalf("expected %s to be updated, got %s", syncPath, installed[0].Path)
+	}
+	if len(skipped) != 8 {
+		t.Fatalf("expected eight identical agent files to be skipped, got %d", len(skipped))
+	}
+
+	expected, err := templates.Read("files/sync-issues.sh")
+	if err != nil {
+		t.Fatalf("failed to read sync-issues.sh template: %v", err)
+	}
+	actual, err := os.ReadFile(syncPath)
+	if err != nil {
+		t.Fatalf("failed to read updated sync-issues.sh: %v", err)
+	}
+	if string(actual) != string(expected) {
+		t.Error("shared sync-issues.sh was not updated to the template")
+	}
+	info, err := os.Stat(syncPath)
+	if err != nil {
+		t.Fatalf("failed to stat sync-issues.sh: %v", err)
+	}
+	if info.Mode().Perm()&0o111 == 0 {
+		t.Error("updated sync-issues.sh should be executable")
+	}
+}
+
+func TestUpgradeWithOptionsCreatesMissingSharedScript(t *testing.T) {
+	target := t.TempDir()
+
+	if _, _, err := Install(Options{TargetPath: target, Agent: templates.Gemini}); err != nil {
+		t.Fatalf("install should succeed: %v", err)
+	}
+	if err := os.Remove(filepath.Join(target, sharedSyncIssuesPath)); err != nil {
+		t.Fatalf("failed to remove sync-issues.sh: %v", err)
+	}
+
+	installed, skipped, err := UpgradeWithOptions(target, UpgradeOptions{IncludeShared: true})
+	if err != nil {
+		t.Fatalf("upgrade with shared files should succeed: %v", err)
+	}
+	if len(installed) != 1 || installed[0].Path != filepath.Join(target, sharedSyncIssuesPath) {
+		t.Fatalf("expected only the missing shared script to be installed, got %+v", installed)
+	}
+	if len(skipped) != 4 {
+		t.Fatalf("expected four identical agent files to be skipped, got %d", len(skipped))
+	}
+}
+
+func TestUpgradeWithOptionsDoesNothingWithoutAnAgent(t *testing.T) {
+	target := t.TempDir()
+
+	installed, skipped, err := UpgradeWithOptions(target, UpgradeOptions{IncludeShared: true})
+	if err != nil {
+		t.Fatalf("upgrade without an agent should succeed: %v", err)
+	}
+	if len(installed) != 0 || len(skipped) != 0 {
+		t.Fatalf("upgrade without an agent should do nothing: installed=%d skipped=%d", len(installed), len(skipped))
+	}
+	if _, err := os.Stat(filepath.Join(target, sharedSyncIssuesPath)); err == nil {
+		t.Error("upgrade without an agent should not create sync-issues.sh")
+	}
+}
+
+func TestUpgradeWithOptionsSupportsLegacyPrompt(t *testing.T) {
+	target := t.TempDir()
+	prompt, err := templates.Read("files/GEMINI.md")
+	if err != nil {
+		t.Fatalf("failed to read prompt template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "GEMINI.md"), prompt, 0o644); err != nil {
+		t.Fatalf("failed to create legacy prompt: %v", err)
+	}
+
+	installed, _, err := UpgradeWithOptions(target, UpgradeOptions{IncludeShared: true})
+	if err != nil {
+		t.Fatalf("upgrade of legacy prompt should succeed: %v", err)
+	}
+	if len(installed) != 4 {
+		t.Fatalf("expected three skills and the shared script, got %d files", len(installed))
+	}
+	if _, err := os.Stat(filepath.Join(target, sharedSyncIssuesPath)); err != nil {
+		t.Fatalf("shared sync-issues.sh was not created: %v", err)
+	}
+}

@@ -91,3 +91,52 @@ func TestRunUpgradeRelaunchesAfterSuccessfulSelfUpdate(t *testing.T) {
 		t.Error("upgrade should relaunch the updated CLI")
 	}
 }
+
+func TestRunUpgradeWithForceSharedUpdatesSharedScript(t *testing.T) {
+	target := t.TempDir()
+	prompt, err := templates.Read("files/GEMINI.md")
+	if err != nil {
+		t.Fatalf("failed to read prompt template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "GEMINI.md"), prompt, 0o644); err != nil {
+		t.Fatalf("failed to create existing prompt: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(target, "scripts"), 0o755); err != nil {
+		t.Fatalf("failed to create scripts directory: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "scripts", "sync-issues.sh"), []byte("custom"), 0o755); err != nil {
+		t.Fatalf("failed to customize sync-issues.sh: %v", err)
+	}
+
+	originalUpdateCLI := updateCLI
+	originalCommandLine := flag.CommandLine
+	originalArgs := os.Args
+	t.Cleanup(func() {
+		updateCLI = originalUpdateCLI
+		flag.CommandLine = originalCommandLine
+		os.Args = originalArgs
+	})
+
+	updateCLI = func() error {
+		return errors.New("network unavailable")
+	}
+	flag.CommandLine = flag.NewFlagSet("agent-init", flag.ContinueOnError)
+	flag.CommandLine.SetOutput(io.Discard)
+	os.Args = []string{"agent-init", "upgrade", "--path", target, "--no-commit", "--force-shared"}
+
+	if err := runUpgradeCommand(); err != nil {
+		t.Fatalf("upgrade with --force-shared should succeed: %v", err)
+	}
+
+	expected, err := templates.Read("files/sync-issues.sh")
+	if err != nil {
+		t.Fatalf("failed to read sync-issues.sh template: %v", err)
+	}
+	actual, err := os.ReadFile(filepath.Join(target, "scripts", "sync-issues.sh"))
+	if err != nil {
+		t.Fatalf("failed to read updated sync-issues.sh: %v", err)
+	}
+	if string(actual) != string(expected) {
+		t.Error("--force-shared should update sync-issues.sh to the template")
+	}
+}
