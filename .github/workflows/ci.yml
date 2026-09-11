@@ -40,4 +40,6 @@ jobs:
       - name: Validate Workflow Scripts
         run: |
           bash -n scripts/sync-issues.sh
+          bash -n scripts/sync-issues_test.sh
+          bash scripts/sync-issues_test.sh
           test -x scripts/sync-issues.sh

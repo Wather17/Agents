@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+: "${GH_CALL_LOG:?GH_CALL_LOG must be set}"
+printf '%s\n' "$*" >> "$GH_CALL_LOG"
+
+if [[ "${1:-}" != "issue" || "${2:-}" != "list" ]]; then
+  printf 'unexpected gh command: %s\n' "$*" >&2
+  exit 97
+fi
+
+if [[ "$*" != *"--json number,title,body,labels,comments"* ]]; then
+  printf 'aggregated issue fields were not requested: %s\n' "$*" >&2
+  exit 98
+fi
+
+if [[ "${GH_MODE:-success}" == "failure" ]]; then
+  exit 1
+fi
+
+if [[ "${GH_MODE:-success}" == "empty" ]]; then
+  exit 0
+fi
+
+encode() {
+  printf '%s' "$1" | base64 | tr -d '\n'
+}
+
+record() {
+  printf '%s\t%s\t%s\t%s\t%s\n' \
+    "$(encode "$1")" \
+    "$(encode "$2")" \
+    "$(encode "$3")" \
+    "$(encode "$4")" \
+    "$(encode "$5")"
+}
+
+record \
+  "42" \
+  "First Issue" \
+  "bug, status:ready" \
+  $'line one\nline two\twith tab' \
+  $'### Comentário por @alice:\ncomentário 1\n\n### Comentário por @bob:\ncomentário 2\n'
+
+record "7" "🚀" "" "" ""
